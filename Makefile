@@ -1,28 +1,40 @@
-NAME = Webserv
+SERVER = server
 
-PATH = /srcs/
+CLIENT = client
 
-SRC = $(PATH)main.cpp\
+SRCDIR = src/
+OBJDIR = obj/
 
-OBJ	= $(SRC:.cpp=.o)
+CSRC = $(SRCDIR)Client.cpp\
+		$(SRCDIR)cMain.cpp
+SSRC = $(SRCDIR)Server.cpp\
+		$(SRCDIR)sMain.cpp
 
-RM		= rm -f
+COBJ = $(CSRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)
+SOBJ = $(SSRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)
+
+RM		= rm -fr
 CC		= c++
-CFLAGS	= -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -O0
 
-all: $(NAME)
+all: $(SERVER) $(CLIENT)
 
-$(NAME): $(OBJ)
-	$(CC) $(CFLAGS) -O0 $(OBJ) -o $(NAME)
+$(SERVER): $(SOBJ)
+	$(CC) $(CFLAGS) $(SOBJ) -o $(SERVER)
 
-%.o:%.cpp
-	$(CC) $(CFLAGS) -O0 -c $< -o $@
+$(CLIENT): $(COBJ)
+	$(CC) $(CFLAGS) $(COBJ) -o $(CLIENT)
+
+$(OBJDIR)%.o: $(SRCDIR)%.cpp
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJ)
+	$(RM) $(OBJDIR)*.o $(OBJDIR)
 
 fclean: clean
-	$(RM) $(NAME)
+	$(RM) $(SERVER) $(CLIENT)
+
 
 re: fclean all
 
