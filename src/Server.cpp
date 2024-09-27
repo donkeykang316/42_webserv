@@ -46,4 +46,6 @@ Server::Server() {
 	close(_clientSocketFD);
 }
 
-Server::~Server() {}
+Server::~Server() {
+	close(_socketFD);
+}
