@@ -4,14 +4,13 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-class Client {
+class Server {
 private:
 	int 				_socket;
 	struct sockaddr_in	_serverAddress;
-	char 				_message[4096];
+	struct sockaddr_in	_clientAddress;
 
 public:
-	Client();
-	~Client();
-
+	Server();
+	~Server();
 };

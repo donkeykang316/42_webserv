@@ -21,7 +21,6 @@ Client::Client() {
 
 	// receive a message from the server
 	recv(_socket, _message, sizeof(_message), 0);
-
 	std::cout << "Server: " << std::string(_message, 0, sizeof(_message)) << std::endl;
 
 	close(_socket);

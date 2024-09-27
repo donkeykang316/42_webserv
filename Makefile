@@ -1,29 +1,21 @@
-SERVER = server
-
-CLIENT = client
+NAME = webserv
 
 SRCDIR = src/
 OBJDIR = obj/
 
-CSRC = $(SRCDIR)Client.cpp\
-		$(SRCDIR)cMain.cpp
-SSRC = $(SRCDIR)Server.cpp\
-		$(SRCDIR)sMain.cpp
+SRC = $(SRCDIR)Server.cpp\
+		$(SRCDIR)main.cpp
 
-COBJ = $(CSRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)
-SOBJ = $(SSRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)
+OBJ = $(SRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)
 
 RM		= rm -fr
 CC		= c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -O0
 
-all: $(SERVER) $(CLIENT)
+all: $(NAME)
 
-$(SERVER): $(SOBJ)
-	$(CC) $(CFLAGS) $(SOBJ) -o $(SERVER)
-
-$(CLIENT): $(COBJ)
-	$(CC) $(CFLAGS) $(COBJ) -o $(CLIENT)
+$(NAME): $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
 $(OBJDIR)%.o: $(SRCDIR)%.cpp
 	@mkdir -p $(OBJDIR)
@@ -33,7 +25,7 @@ clean:
 	$(RM) $(OBJDIR)*.o $(OBJDIR)
 
 fclean: clean
-	$(RM) $(SERVER) $(CLIENT)
+	$(RM) $(NAME)
 
 
 re: fclean all
