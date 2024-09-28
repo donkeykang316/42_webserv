@@ -34,15 +34,30 @@ Server::Server() {
 		std::cerr << "listen failed\n";
 		close(_socketFD);
 	}
-	
-	_clientSocketFD = accept(_socketFD, (struct sockaddr *)&_clientAddr, (socklen_t*)&_clientAddr);
+
+	std::cout << "Server is listening on port 5000\n";
+	socklen_t clientAddrLen = sizeof(_clientAddr);
+	_clientSocketFD = accept(_socketFD, (struct sockaddr *)&_clientAddr, &clientAddrLen);
 	if (_clientSocketFD < 0) {
 		std::cerr << "Could not connect with the client!\n";
 	}
+	// Prepare an HTTP response
+    std::string body = "<html><body><h1>Welcome to the Awesome Server!</h1></body></html>";
+    std::stringstream ss;
+    ss << body.size();
+    std::string contentLength = ss.str();
+	std::string httpResponse =
+        	"HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html; charset=UTF-8\r\n"
+            "Content-Length: " + contentLength + "\r\n"
+            "Connection: close\r\n"
+            "\r\n" +
+            body;
 
-	std::string welcomeMessage = "Welcome to the Awesome Server!";
-	send(_clientSocketFD, welcomeMessage.c_str(), welcomeMessage.size() + 1, 0);
-
+    // Send the HTTP response to the client
+    if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
+        std::cerr << "Failed to send response to the client.\n";
+    }
 	close(_clientSocketFD);
 }
 
