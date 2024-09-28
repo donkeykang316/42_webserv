@@ -98,3 +98,5 @@ close(_socketFD);
 
 ### Concurrency Models
 - Decide on how you'll handle multiple clients—either through multi-threading or using non-blocking I/O with `select()` or `poll()`
+### determine public IP address
+- `curl ifconfig.me`
