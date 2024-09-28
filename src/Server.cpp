@@ -14,6 +14,13 @@ Server::Server() {
 		close(_socketFD);
 	}
 
+	int opt = 1;
+	if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+		std::cerr << "set socket failed\n";
+		close(_socketFD);
+	}
+
+
 	if (listen(_socketFD, 5) < 0) {
 		std::cerr << "listen failed\n";
 		close(_socketFD);
