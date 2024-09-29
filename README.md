@@ -72,7 +72,7 @@ if (_clientSocketFD < 0) {
 	std::cerr << "Could not connect with the client!\n";
 }
 // Prepare an HTTP response
-std::string body = "<html><body><h1>Welcome to the Awesome Server!</h1></body></html>";
+std::string body = "Welcome to the Awesome Server!";
 std::string httpResponse = "HTTP/1.1\n\n" + body;
 
 // Send the HTTP response to the client
