@@ -14,17 +14,12 @@ Server::Server() {
 		close(_socketFD);
 	}
 
-	int opt = 1;
-	if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "set socket failed\n";
-		close(_socketFD);
-	}
-
-
 	if (listen(_socketFD, 5) < 0) {
 		std::cerr << "listen failed\n";
 		close(_socketFD);
 	}
+
+	serverInit();
 
 	std::cout << "Server is listening on port 5000\n";
 	while (1)
@@ -35,17 +30,9 @@ Server::Server() {
 			std::cerr << "Could not connect with the client!\n";
 		}
 		// Prepare an HTTP response
-   		std::string body = "Welcome to the Awesome Server!";
-    	std::stringstream ss;
-    	ss << body.size();
-    	std::string contentLength = ss.str();
-		std::string httpResponse =
-        		"HTTP/1.1 200 OK\r\n"
-            	"Content-Type: text/html; charset=UTF-8\r\n"
-            	"Content-Length: " + contentLength + "\r\n"
-            	"Connection: close\r\n"
-            	"\r\n" +
-            	body;
+		std::string httpResponse = "HTTP/1.1 200 OK\n"
+			"\n"
+			+ _htmlFile["server/index.html"];
 
     	if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
         	std::cerr << "Failed to send response to the client.\n";
@@ -56,4 +43,17 @@ Server::Server() {
 
 Server::~Server() {
 	close(_socketFD);
+}
+
+void Server::serverInit() {
+	std::string key = "server/index.html";
+	std::ifstream file;
+	file.open(key.c_str());
+	if (!file.is_open()) {
+        throw std::exception();
+    }
+	std::string line;
+    while (std::getline(file, line)) {
+		_htmlFile[key] += line + "\n";
+	}
 }

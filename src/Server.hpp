@@ -2,17 +2,25 @@
 #include <unistd.h>
 #include <cstring>
 #include <sstream>
+#include <fstream>
+#include <fcntl.h>
+#include <map>
+#include <algorithm>
 #include <sys/socket.h>
-#include <netdb.h>
+#include <netinet/in.h>
 
 class Server {
 private:
-	int					_socketFD;
-	int					_clientSocketFD;
-	struct sockaddr_in	_serverAddr;
-	struct sockaddr_in	_clientAddr;
+	int									_socketFD;
+	int									_clientSocketFD;
+	struct sockaddr_in					_serverAddr;
+	struct sockaddr_in					_clientAddr;
+	std::map<std::string, std::string>	_htmlFile;
+	std::map<std::string, std::string>	_httpResponse;
+
 	
 public:
 	Server();
 	~Server();
+	void serverInit();
 };

@@ -73,16 +73,7 @@ if (_clientSocketFD < 0) {
 }
 // Prepare an HTTP response
 std::string body = "<html><body><h1>Welcome to the Awesome Server!</h1></body></html>";
-std::stringstream ss;
-ss << body.size();
-std::string contentLength = ss.str();
-std::string httpResponse =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html; charset=UTF-8\r\n"
-        "Content-Length: " + contentLength + "\r\n"
-        "Connection: close\r\n"
-        "\r\n" +
-		body;
+std::string httpResponse = "HTTP/1.1\n\n" + body;
 
 // Send the HTTP response to the client
 if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
