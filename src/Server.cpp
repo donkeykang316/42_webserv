@@ -1,15 +1,42 @@
 #include "Server.hpp"
 
 Server::Server() {
-	_socketFD = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socketFD < 0) {
-		std::cerr << "socket ERROR\n";
+	struct addrinfo hints;
+	struct addrinfo *res;
+	struct addrinfo *rp;
+
+	memset(&hints, 0 , sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	//hints.ai_flags = AI_PASSIVE;
+
+	const char *port = "5000";
+	int status = getaddrinfo(NULL, port, &hints, &res);
+	if (status != 0) {
+		std::cerr << gai_strerror(status);
 	}
 
-	_serverAddr.sin_family = AF_INET;
-	_serverAddr.sin_port = htons(5000);
-	_serverAddr.sin_addr.s_addr = INADDR_ANY;
-	if (bind(_socketFD, (struct sockaddr *)&_serverAddr, sizeof(_serverAddr)) < 0) {
+	for (rp = res; rp != NULL; rp = rp->ai_next) {
+		_socketFD = socket(AF_INET, SOCK_STREAM, 0);
+		if (_socketFD < 0) {
+			std::cerr << "socket ERROR\n";
+		}
+
+		int opt = 1;
+		if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+			std::cerr << "setsocket ERROR\n";
+			close(_socketFD);
+			break;
+		}
+	
+		if (bind(_socketFD, rp->ai_addr, rp->ai_addrlen) == 0) {
+			std::cout << "binding success\n";
+			break;
+		}
+		close(_socketFD);
+	}
+
+	if (rp == NULL) {
 		std::cerr << "bind failed\n";
 		close(_socketFD);
 	}
@@ -39,6 +66,7 @@ Server::Server() {
     	}
 		close(_clientSocketFD);
 	}
+	freeaddrinfo(res);
 }
 
 Server::~Server() {

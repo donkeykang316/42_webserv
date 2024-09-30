@@ -5,5 +5,4 @@ int	main(int ac, char** av) {
 	(void)av;
 
 	Server	Server;
-	//basic test: curl -v http://localhost:5000/
 }
