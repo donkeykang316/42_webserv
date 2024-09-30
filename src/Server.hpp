@@ -9,6 +9,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 class Server {
 private:
@@ -18,10 +21,12 @@ private:
 	struct sockaddr_in					_clientAddr;
 	std::map<std::string, std::string>	_htmlFile;
 	std::map<std::string, std::string>	_httpResponse;
+	std::map<std::string, std::string>	_clientFeedback;
 
 	
 public:
 	Server();
 	~Server();
 	void serverInit();
+	std::string getFile();
 };
