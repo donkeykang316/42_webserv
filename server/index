@@ -62,17 +62,17 @@
     <!-- Button Container -->
     <div class="button-container">
         <!-- Red Button -->
-        <a href="subpage/red.html" class="redirect-button red-button">
+        <a href="subpage/red" class="redirect-button red-button">
             Go to Red Page
         </a>
 
         <!-- Green Button -->
-        <a href="subpage/green.html" class="redirect-button green-button">
+        <a href="subpage/green" class="redirect-button green-button">
             Go to Green Page
         </a>
 
         <!-- Blue Button -->
-        <a href="subpage/blue.html" class="redirect-button blue-button">
+        <a href="subpage/blue" class="redirect-button blue-button">
             Go to Blue Page
         </a>
     </div>

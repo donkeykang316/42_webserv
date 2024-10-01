@@ -12,6 +12,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <errno.h>
 
 class Server {
 private:
@@ -19,6 +22,7 @@ private:
 	int									_clientSocketFD;
 	//struct sockaddr_in					_serverAddr;
 	struct sockaddr_in					_clientAddr;
+	std::string							_text;
 	std::map<std::string, std::string>	_htmlFile;
 	std::map<std::string, std::string>	_httpResponse;
 	std::map<std::string, std::string>	_clientFeedback;
@@ -27,6 +31,5 @@ private:
 public:
 	Server();
 	~Server();
-	void serverInit();
-	std::string getFile();
+	void getFile(std::string &file);
 };
