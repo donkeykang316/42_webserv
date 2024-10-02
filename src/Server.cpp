@@ -70,31 +70,36 @@ Server::Server() {
         	close(_clientSocketFD);
         	return;
     	}
-		//std::cout << "buffer:\n" << buffer << std::endl;
-		std::cout << "byereceived: " << bytesReceived << std::endl;
+		std::cout << "buffer:\n" << buffer << std::endl;
+		//std::cout << "byereceived: " << bytesReceived << std::endl;
 		std::string	line;
 		std::istringstream bufferString(buffer);
 		std::getline(bufferString, line);
 		std::string tmp = line.substr(line.find(' ') + 1);
-		std::string fileAcces = tmp.substr(1, tmp.find(' ') - 1);
-		std::cout << "filE" << fileAcces << "EOF" <<std::endl;
+		std::string fileAccess = tmp.substr(1, tmp.find(' ') - 1);
+		//std::cout << "filE" << fileAcces << "EOF" <<std::endl;
 		/*while (std::getline(bufferString, line)) {
         	std::string key = line.substr(0, line.find(':'));
         	std::string info = line.substr(line.find(':') + 2);
         	_clientFeedback[key] = info;
     	}*/
 		if (!fork()) {
-		getFile(fileAcces);
+			getFile(fileAccess);
+			size_t cLen = _text.size();
+			std::stringstream contentLen;
+    			contentLen << cLen;
+			std::string cL = contentLen.str();
+			std::cout << cL << std::endl;
+			// Prepare an HTTP response
+			std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
+				+ cL + "\r\n"
+				+ "\r\n"
+				+ _text;
 
-		// Prepare an HTTP response
-		std::string httpResponse = "HTTP/1.1 200 OK\n"
-			"\n"
-			+ _text;
-
-		
     		if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
         		std::cerr << "Failed to send response to the client.\n";
 			}
+			std::exit(0);
     	}
 		close(_clientSocketFD);
 	}
@@ -169,7 +174,7 @@ void Server::getFile(std::string &file) {
 	}
 	else {
 		std::string filePath = "server/" + file;
-		std::cout << "filePath:" << filePath <<std::endl;
+		//std::cout << "filePath:" << filePath <<std::endl;
 		// Get file information using stat()
         if (stat(filePath.c_str(), &fileStat) == -1) {
         	std::cerr << "stat error\n";
@@ -201,71 +206,4 @@ void Server::getFile(std::string &file) {
 			std::cout << "\n\n"; // Add spacing between files 
 		}
 	}
-
-
-/*
-    // Change the current working directory to the specified path
-    if (chdir(av[1]) == -1) {
-        std::cerr << "file doesn't exist\n";
-        //exit
-    }
-
-    // Open the current directory
-    dirp = opendir(".");
-    if (dirp == NULL) {
-        std::cerr << "Open file error\n";
-        //exit
-    }
-
-
-    // Read directory entries
-    while ((entry = readdir(dirp)) != NULL) {
-        // Skip the "." and ".." entries
-        if (std::strcmp(entry->d_name, ".") == 0 || std::strcmp(entry->d_name, "..") == 0)
-            continue;
-
-        // Get file information using stat()
-        struct stat fileStat;
-        if (stat(entry->d_name, &fileStat) == -1) {
-            std::cerr << "stat error\n";
-            continue;
-        }
-
-        // Check if the entry is a regular file
-        if (S_ISREG(fileStat.st_mode)) {
-            // Open the file
-            FILE *file = std::fopen(entry->d_name, "r");
-            if (file == NULL) {
-                std::cerr << "file open error\n";
-                continue;
-            }
-
-            // Print the name of the file
-            printf("Contents of %s:\n", entry->d_name);
-			std::cout << "Contents of " << entry->d_name << ":\n"; 
-
-            // Read and print the contents of the file
-            int c;
-            while ((c = std::fgetc(file)) != EOF) {
-                std::putchar(c);
-            }
-
-            // Close the file
-            std::fclose(file);
-			std::cout << "\n\n"; // Add spacing between files 
-        }
-    }
-
-    // Check for errors after the loop
-    if (errno != 0 && !entry) {
-        perror("readdir");
-        closedir(dirp);
-        //exit
-    }
-
-    // Close the directory stream
-    if (closedir(dirp) == -1) {
-        perror("closedir");
-        //exit
-    }*/
 }
