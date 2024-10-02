@@ -27,13 +27,15 @@ private:
 	std::map<std::string, std::string>	_htmlFile;
 	std::map<std::string, std::string>	_httpResponse;
 	std::map<std::string, std::string>	_clientFeedback;
+	std::map<int, std::string>			_fileExtension;
 
 	
 public:
 	Server();
 	~Server();
-	void getFile(std::string &file);
+	void fileExtensionInit();
+	void getFile(std::string &filePath, struct stat fileStat);
 };
 
-void sigInteruption(void);
-void sigHandler(int signum);
+//void sigInteruption(void);
+//void sigHandler(int signum);

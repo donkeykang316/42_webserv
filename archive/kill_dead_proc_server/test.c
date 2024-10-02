@@ -134,3 +134,65 @@ int main(void)
 
 	return 0;
 }
+
+/*
+	DIR 			*dirp;
+	struct dirent	*entry = NULL;
+	if (chdir(file.c_str()) == 0) {
+		dirp = opendir(".");
+    	if (dirp == NULL) {
+        	std::cerr << "Directory doesn't exist\n";
+        	//exit
+    	}
+		// Read directory entries
+    	while ((entry = readdir(dirp)) != NULL) {
+        	// Skip the "." and ".." entries
+        	if (std::strcmp(entry->d_name, ".") == 0 || std::strcmp(entry->d_name, "..") == 0)
+            	continue;
+
+        	// Get file information using stat()
+        	if (stat(entry->d_name, &fileStat) == -1) {
+            	std::cerr << "stat error\n";
+            	continue;
+        	}
+
+        	// Check if the entry is a regular file
+        	if (S_ISREG(fileStat.st_mode)) {
+            	// Open the file
+            	FILE *fileToRead = std::fopen(entry->d_name, "r");
+            	if (fileToRead == NULL) {
+                	std::cerr << "file open error\n";
+                	continue;
+            	}
+
+            	// Print the name of the file
+				std::cout << "Contents of " << entry->d_name << ":\n"; 
+
+            	// Read and print the contents of the file
+            	int c;
+            	while ((c = std::fgetc(fileToRead)) != EOF) {
+                	std::stringstream ss;
+    				ss << c + '0';
+					_text += ss.str();
+            	}
+
+            	// Close the file
+            	std::fclose(fileToRead);
+				std::cout << "\n\n"; // Add spacing between files 
+        	}
+    	}
+
+    	// Check for errors after the loop
+    	if (errno != 0 && !entry) {
+        	perror("readdir");
+        	closedir(dirp);
+        	//exit
+    	}
+
+    	// Close the directory stream
+    	if (closedir(dirp) == -1) {
+        	perror("closedir");
+        	//exit
+    	}
+	}
+	*/

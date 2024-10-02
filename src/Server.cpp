@@ -49,10 +49,13 @@ Server::Server() {
 		//exit
 	}
 
-		if (listen(_socketFD, 5) < 0) {
+	if (listen(_socketFD, 5) < 0) {
 		std::cerr << "listen failed\n";
 		close(_socketFD);
 	}
+
+	fileExtensionInit();
+
 	std::cout << "Server is listening on port " << port << std::endl;
 	while (1) {
 		socklen_t clientAddrLen = sizeof(_clientAddr);
@@ -83,7 +86,18 @@ Server::Server() {
         	_clientFeedback[key] = info;
     	}*/
 		if (!fork()) {
-			getFile(fileAccess);
+			struct stat fileStat;
+			std::string filePath = "server/" + fileAccess + _fileExtension[0];
+    		if (stat(filePath.c_str(), &fileStat) != -1) {
+				getFile(filePath, fileStat);
+			} else {
+				/*std::string filePath = "server/" + fileAccess + _fileExtension[1];
+				std::cout << "file path:" << filePath << std::endl;
+				if (execve("bash")) {
+    				std::cerr << "stat error\n";
+				}*/
+				std::cerr << "stat error\n";
+			}
 			size_t cLen = _text.size();
 			std::stringstream contentLen;
     			contentLen << cLen;
@@ -108,103 +122,48 @@ Server::~Server() {
 	close(_socketFD);
 }
 
-void Server::getFile(std::string &file) {
-	DIR 			*dirp;
-    struct dirent	*entry = NULL;
-	struct stat 	fileStat;
+void Server::getFile(std::string &filePath, struct stat fileStat) {
 
-	(void)file;
-	if (chdir(file.c_str()) == 0) {
-		dirp = opendir(".");
-    	if (dirp == NULL) {
-        	std::cerr << "Directory doesn't exist\n";
-        	//exit
-    	}
-		// Read directory entries
-    	while ((entry = readdir(dirp)) != NULL) {
-        	// Skip the "." and ".." entries
-        	if (std::strcmp(entry->d_name, ".") == 0 || std::strcmp(entry->d_name, "..") == 0)
-            	continue;
-
-        	// Get file information using stat()
-        	if (stat(entry->d_name, &fileStat) == -1) {
-            	std::cerr << "stat error\n";
-            	continue;
-        	}
-
-        	// Check if the entry is a regular file
-        	if (S_ISREG(fileStat.st_mode)) {
-            	// Open the file
-            	FILE *fileToRead = std::fopen(entry->d_name, "r");
-            	if (fileToRead == NULL) {
-                	std::cerr << "file open error\n";
-                	continue;
-            	}
-
-            	// Print the name of the file
-				std::cout << "Contents of " << entry->d_name << ":\n"; 
-
-            	// Read and print the contents of the file
-            	int c;
-            	while ((c = std::fgetc(fileToRead)) != EOF) {
-                	std::stringstream ss;
-    				ss << c + '0';
-					_text += ss.str();
-            	}
-
-            	// Close the file
-            	std::fclose(fileToRead);
-				std::cout << "\n\n"; // Add spacing between files 
-        	}
-    	}
-
-    	// Check for errors after the loop
-    	if (errno != 0 && !entry) {
-        	perror("readdir");
-        	closedir(dirp);
-        	//exit
-    	}
-
-    	// Close the directory stream
-    	if (closedir(dirp) == -1) {
-        	perror("closedir");
-        	//exit
-    	}
-	}
-	else {
-		std::string filePath = "server/" + file;
-		//std::cout << "filePath:" << filePath <<std::endl;
-		// Get file information using stat()
-        if (stat(filePath.c_str(), &fileStat) == -1) {
-        	std::cerr << "stat error\n";
-			}
-
-    	// Check if the entry is a regular file
-    	if (S_ISREG(fileStat.st_mode)) {
-        	// Open the file
-        	FILE *fileToRead = std::fopen(filePath.c_str(), "r");
-        	if (fileToRead == NULL) {
-            	std::cerr << "file open error\n";
-        	}
-
-        	// Print the name of the file
-        	printf("Contents of %s:\n", file.c_str());
-			//std::cout << "Contents of " << entry->d_name << ":\n"; 
-
-        	// Read and print the contents of the file
-        	int c;
-        	while ((c = std::fgetc(fileToRead)) != EOF) {
-				char ch = c;
-            	std::stringstream ss;
-    			ss << ch;
-				_text += ss.str();
-        	}
-
-        	// Close the file
-        	std::fclose(fileToRead);
-			std::cout << "\n\n"; // Add spacing between files 
+	/*std::string filePath = "server/" + file + _fileExtension[0];
+    if (stat(filePath.c_str(), &fileStat) == -1) {
+		std::string filePath = "server/" + file + _fileExtension[1];
+		std::cout << "file path:" << filePath << std::endl;
+		if (stat(filePath.c_str(), &fileStat) == -1) {
+    		std::cerr << "stat error\n";
 		}
+	}*/
+
+	// Check if the entry is a regular file
+	if (S_ISREG(fileStat.st_mode)) {
+    	// Open the file
+    	FILE *fileToRead = std::fopen(filePath.c_str(), "r");
+    	if (fileToRead == NULL) {
+        	std::cerr << "file open error\n";
+    	}
+
+    	// Print the name of the file
+		std::cout << "Contents of " << filePath << ":\n"; 
+
+        // Read and print the contents of the file
+        int c;
+        while ((c = std::fgetc(fileToRead)) != EOF) {
+			char ch = c;
+        	std::stringstream ss;
+    		ss << ch;
+			_text += ss.str();
+        }
+
+    	// Close the file
+    	std::fclose(fileToRead);
+		std::cout << "\n\n"; // Add spacing between files 
 	}
+}
+
+void Server::fileExtensionInit() {
+	int key = 0;
+	_fileExtension[key] = ".html";
+	++key;
+	_fileExtension[key] = ".sh";
 }
 
 /*void sigInteruption(void)

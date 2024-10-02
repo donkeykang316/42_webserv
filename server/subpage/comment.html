@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Section</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2em;
+            background-color: #f9f9f9;
+        }
+        .comment-section {
+            max-width: 600px;
+            margin: auto;
+        }
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 2em;
+        }
+        .comment-form textarea {
+            resize: vertical;
+            min-height: 100px;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 1em;
+        }
+        .comment-form button {
+            width: 100px;
+            padding: 10px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .comments {
+            list-style-type: none;
+            padding: 0;
+        }
+        .comment {
+            background-color: #fff;
+            padding: 1em;
+            margin-bottom: 1em;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .comment .author {
+            font-weight: bold;
+            margin-bottom: 0.5em;
+        }
+        .comment .timestamp {
+            font-size: 0.85em;
+            color: #555;
+            margin-bottom: 0.5em;
+        }
+        .comment .content {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="comment-section">
+        <h2>Leave a Comment</h2>
+        <form class="comment-form" action="/submit_comment" method="POST">
+            <label for="author">Name:</label>
+            <input type="text" id="author" name="author" required>
+
+            <label for="comment">Comment:</label>
+            <textarea id="comment" name="comment" required></textarea>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <h3>Comments</h3>
+        <ul class="comments" id="comments-list">
+            <!-- Existing comments will be inserted here by the server or JavaScript -->
+            <!-- Example of a comment structure:
+            <li class="comment">
+                <div class="author">John Doe</div>
+                <div class="timestamp">2024-04-27 14:35</div>
+                <div class="content">This is a sample comment.</div>
+            </li>
+            -->
+        </ul>
+    </div>
+
+    <!-- Optional: JavaScript to fetch and display comments dynamically -->
+    <script>
+        // Uncomment and modify the URL to fetch comments via AJAX if desired
+        /*
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/get_comments')
+                .then(response => response.json())
+                .then(data => {
+                    const commentsList = document.getElementById('comments-list');
+                    data.comments.forEach(comment => {
+                        const commentItem = document.createElement('li');
+                        commentItem.classList.add('comment');
+
+                        const author = document.createElement('div');
+                        author.classList.add('author');
+                        author.textContent = comment.author;
+
+                        const timestamp = document.createElement('div');
+                        timestamp.classList.add('timestamp');
+                        timestamp.textContent = comment.timestamp;
+
+                        const content = document.createElement('div');
+                        content.classList.add('content');
+                        content.textContent = comment.content;
+
+                        commentItem.appendChild(author);
+                        commentItem.appendChild(timestamp);
+                        commentItem.appendChild(content);
+
+                        commentsList.appendChild(commentItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching comments:', error);
+                });
+        });
+        */
+    </script>
+</body>
+</html>
