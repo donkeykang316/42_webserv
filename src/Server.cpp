@@ -53,7 +53,6 @@ Server::Server() {
 		std::cerr << "listen failed\n";
 		close(_socketFD);
 	}
-
 	std::cout << "Server is listening on port " << port << std::endl;
 	while (1) {
 		socklen_t clientAddrLen = sizeof(_clientAddr);
@@ -207,3 +206,23 @@ void Server::getFile(std::string &file) {
 		}
 	}
 }
+
+/*void sigInteruption(void)
+{
+	struct sigaction	sa;
+
+	std::memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = &sigHandler;
+	sa.sa_flags = SA_RESTART;
+	sigemptyset(&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGINT);
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+void	sigHandler(int signum)
+{
+	if (signum == SIGINT){
+		std::cerr << "Signal interuption\n";
+	}
+}*/

@@ -13,9 +13,9 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <errno.h>
 #include <cstdlib>
+#include <csignal>
 
 class Server {
 private:
@@ -34,3 +34,6 @@ public:
 	~Server();
 	void getFile(std::string &file);
 };
+
+void sigInteruption(void);
+void sigHandler(int signum);
