@@ -1,6 +1,8 @@
 #include "Server.hpp"
 
-Server::Server() {
+Server::Server() {}
+
+Server::Server(char** env) {
 	struct addrinfo hints;
 	struct addrinfo *res;
 	struct addrinfo *rp;
@@ -91,11 +93,13 @@ Server::Server() {
     		if (stat(filePath.c_str(), &fileStat) != -1) {
 				getFile(filePath, fileStat);
 			} else {
-				/*std::string filePath = "server/" + fileAccess + _fileExtension[1];
+				std::string filePath = "server/" + fileAccess + _fileExtension[1];
 				std::cout << "file path:" << filePath << std::endl;
-				if (execve("bash")) {
+				const char path[] = "/bin/php";
+				const char *args[] = { "php", "home/kaan/Documents/42_webserv/test.php", NULL };
+				if (execve(path, const_cast<char* const*>(args), env) == -1) {
     				std::cerr << "stat error\n";
-				}*/
+				}
 				std::cerr << "stat error\n";
 			}
 			size_t cLen = _text.size();
@@ -163,7 +167,7 @@ void Server::fileExtensionInit() {
 	int key = 0;
 	_fileExtension[key] = ".html";
 	++key;
-	_fileExtension[key] = ".sh";
+	_fileExtension[key] = ".php";
 }
 
 /*void sigInteruption(void)

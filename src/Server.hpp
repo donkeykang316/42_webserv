@@ -32,6 +32,7 @@ private:
 	
 public:
 	Server();
+	Server(char** env);
 	~Server();
 	void fileExtensionInit();
 	void getFile(std::string &filePath, struct stat fileStat);

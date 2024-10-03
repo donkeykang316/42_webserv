@@ -97,3 +97,4 @@ close(_socketFD);
 
 ### siege test (multi client requests test)
 - `siege -r 100 -c 2 http://127.00.00:5000/`
+- the options `-c` and `-t` are used to specify the number of concurrent users and the duration of the test
