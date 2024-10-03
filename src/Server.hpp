@@ -16,22 +16,24 @@
 #include <errno.h>
 #include <cstdlib>
 #include <csignal>
+#include <sys/poll.h>
 
 class Server {
 private:
 	int									_socketFD;
 	int									_clientSocketFD;
-	//struct sockaddr_in					_serverAddr;
+	//struct sockaddr_in				_serverAddr;
 	struct sockaddr_in					_clientAddr;
 	std::string							_text;
+	struct pollfd 						_fds[201];
 	std::map<std::string, std::string>	_htmlFile;
 	std::map<std::string, std::string>	_httpResponse;
 	std::map<std::string, std::string>	_clientFeedback;
 	std::map<int, std::string>			_fileExtension;
 
+	Server() {}
 	
 public:
-	Server();
 	Server(char** env);
 	~Server();
 	void fileExtensionInit();

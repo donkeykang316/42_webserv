@@ -4,6 +4,7 @@ SRCDIR = src/
 OBJDIR = obj/
 
 SRC = $(SRCDIR)Server.cpp\
+		$(SRCDIR)Conf.cpp\
 		$(SRCDIR)main.cpp
 
 OBJ = $(SRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)

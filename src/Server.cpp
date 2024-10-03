@@ -1,12 +1,13 @@
 #include "Server.hpp"
 
-Server::Server() {}
-
 Server::Server(char** env) {
+	(void)env;
+
 	struct addrinfo hints;
 	struct addrinfo *res;
 	struct addrinfo *rp;
 
+	_text.clear();
 	memset(&hints, 0 , sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
@@ -58,22 +59,39 @@ Server::Server(char** env) {
 
 	fileExtensionInit();
 
-	std::cout << "Server is listening on port " << port << std::endl;
-	while (1) {
+	// Initialize all client fds to -1 (unused)
+	for (int i = 0; i < 201; ++i) {
+		_fds[i].fd = -1;
+		_fds[i].events = 0;
+	}
+	_fds[0].fd = _socketFD;
+	_fds[0].events = POLLIN; //set event to ready to read
+	while(1) {
+		if (poll(_fds, 201, -1) == -1) {
+			std::cerr << "poll error\n";
+		}
+
+		std::cout << "Server is listening on port " << port << std::endl;
 		socklen_t clientAddrLen = sizeof(_clientAddr);
 		_clientSocketFD = accept(_socketFD, (struct sockaddr *)&_clientAddr, &clientAddrLen);
 		if (_clientSocketFD < 0) {
 			std::cerr << "Could not connect with the client!\n";
 		}
 
+		for (int i = 1; i < 201; ++i) {
+			if (_fds[i].fd == -1) {
+				_fds[i].fd = _clientSocketFD;
+				_fds[i].events = POLLIN;
+			}
+
 		// Read client's request
     	char buffer[1024];
-    	ssize_t bytesReceived = recv(_clientSocketFD, buffer, sizeof(buffer) - 1, 0);
-    	if (bytesReceived < 0) {
+    	/*ssize_t bytesReceived = */ recv(_clientSocketFD, buffer, sizeof(buffer) - 1, 0);
+    	/*if (bytesReceived == -1) {
         	std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
         	close(_clientSocketFD);
         	return;
-    	}
+    	}*/
 		std::cout << "buffer:\n" << buffer << std::endl;
 		//std::cout << "byereceived: " << bytesReceived << std::endl;
 		std::string	line;
@@ -81,25 +99,27 @@ Server::Server(char** env) {
 		std::getline(bufferString, line);
 		std::string tmp = line.substr(line.find(' ') + 1);
 		std::string fileAccess = tmp.substr(1, tmp.find(' ') - 1);
+		/*if (std::strcmp(fileAccess.c_str(), "favicon.ico") == 0) {
+			std::exit(0);
+		}*/
 		//std::cout << "filE" << fileAcces << "EOF" <<std::endl;
 		/*while (std::getline(bufferString, line)) {
         	std::string key = line.substr(0, line.find(':'));
         	std::string info = line.substr(line.find(':') + 2);
         	_clientFeedback[key] = info;
     	}*/
-		if (!fork()) {
 			struct stat fileStat;
 			std::string filePath = "server/" + fileAccess + _fileExtension[0];
     		if (stat(filePath.c_str(), &fileStat) != -1) {
 				getFile(filePath, fileStat);
 			} else {
-				std::string filePath = "server/" + fileAccess + _fileExtension[1];
+				/*std::string filePath = "server/" + fileAccess + _fileExtension[1];
 				std::cout << "file path:" << filePath << std::endl;
 				const char path[] = "/bin/php";
 				const char *args[] = { "php", "home/kaan/Documents/42_webserv/test.php", NULL };
 				if (execve(path, const_cast<char* const*>(args), env) == -1) {
     				std::cerr << "stat error\n";
-				}
+				}*/
 				std::cerr << "stat error\n";
 			}
 			size_t cLen = _text.size();
@@ -116,9 +136,13 @@ Server::Server(char** env) {
     		if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
         		std::cerr << "Failed to send response to the client.\n";
 			}
-			std::exit(0);
-    	}
-		close(_clientSocketFD);
+			_text.clear();
+			for (int i = 1; i < 201; ++i) {
+			if (_fds[i].fd != -1) {
+				close(_fds[i].fd);
+			}
+		}
+		}
 	}
 }
 
