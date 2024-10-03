@@ -94,3 +94,6 @@ close(_socketFD);
 
 
 ### CGI, select() poll(), essentiel config requirement
+
+### siege test (multi client requests test)
+- `siege -r 100 -c 2 http://127.00.00:5000/`
