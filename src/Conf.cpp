@@ -1,3 +1,3 @@
 #include "Conf.hpp"
 
-//Conf::Conf() {}
+Conf::Conf() {}
