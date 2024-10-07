@@ -97,56 +97,16 @@ Server::Server(char** env) {
 		std::string	line;
 		std::istringstream bufferString(buffer);
 		std::getline(bufferString, line);
-		std::string tmp = line.substr(line.find(' ') + 1);
-		std::string fileAccess = tmp.substr(1, tmp.find(' ') - 1);
-		/*if (std::strcmp(fileAccess.c_str(), "favicon.ico") == 0) {
-			std::exit(0);
-		}*/
-		//std::cout << "filE" << fileAcces << "EOF" <<std::endl;
-		/*while (std::getline(bufferString, line)) {
-        	std::string key = line.substr(0, line.find(':'));
-        	std::string info = line.substr(line.find(':') + 2);
-        	_clientFeedback[key] = info;
-    	}*/
-			struct stat fileStat;
-			std::string filePath = "server/" + fileAccess + _fileExtension[0];
-    		if (stat(filePath.c_str(), &fileStat) != -1) {
-				getFile(filePath, fileStat);
-			} else {
-				/*std::string filePath = "server/" + fileAccess + _fileExtension[1];
-				std::cout << "file path:" << filePath << std::endl;
-				const char path[] = "/bin/php";
-				const char *args[] = { "php", "home/kaan/Documents/42_webserv/test.php", NULL };
-				if (execve(path, const_cast<char* const*>(args), env) == -1) {
-    				std::cerr << "stat error\n";
-				}*/
-				/*std::string errorPage = "404.html";
-				getFile(errorPage, fileStat);*/
-				std::string filePath = "server/" + fileAccess;
-    				if (stat(filePath.c_str(), &fileStat) != -1) {
-					getFile(filePath, fileStat);
-				}
-			}
-			size_t cLen = _text.size();
-			std::stringstream contentLen;
-    			contentLen << cLen;
-			std::string cL = contentLen.str();
-			std::cout << cL << std::endl;
-			// Prepare an HTTP response
-			std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
-				+ cL + "\r\n"
-				+ "\r\n"
-				+ _text;
-
-    		if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
-        		std::cerr << "Failed to send response to the client.\n";
-			}
-			_text.clear();
-			for (int i = 1; i < 201; ++i) {
+		if (std::strncmp(line.c_str(), "GET", 3) == 0) {
+			std::cout << "GET recevied\n";
+			sendHTTPResponse(line);
+		}
+		for (int i = 1; i < 201; ++i) {
 			if (_fds[i].fd != -1) {
 				close(_fds[i].fd);
 			}
 		}
+		_text.clear();
 	}
 }
 
@@ -191,12 +151,81 @@ void Server::getFile(std::string &filePath, struct stat fileStat) {
 	}
 }
 
+void Server::sendHTTPResponse(std::string &line) {
+	std::string tmp = line.substr(line.find(' ') + 1);
+	std::string fileAccess = tmp.substr(1, tmp.find(' ') - 1);
+
+	struct stat fileStat;
+	std::string filePath = "server/" + fileAccess + _fileExtension[0];
+	if (stat(filePath.c_str(), &fileStat) != -1) {
+		getFile(filePath, fileStat);
+	} else {
+		/*std::string filePath = "server/" + fileAccess + _fileExtension[1];
+		std::cout << "file path:" << filePath << std::endl;
+		const char path[] = "/bin/php";
+		const char *args[] = { "php", "home/kaan/Documents/42_webserv/test.php", NULL };
+		if (execve(path, const_cast<char* const*>(args), env) == -1) {
+    		std::cerr << "stat error\n";
+		}*/
+		/*std::string errorPage = "404.html";
+		getFile(errorPage, fileStat);*/
+		std::string filePath = "server/" + fileAccess;
+    	if (stat(filePath.c_str(), &fileStat) != -1) {
+			getFile(filePath, fileStat);
+		}
+	}
+	size_t cLen = _text.size();
+	std::stringstream contentLen;
+    contentLen << cLen;
+	std::string cL = contentLen.str();
+	std::cout << cL << std::endl;
+	// Prepare an HTTP response
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
+		+ cL + "\r\n"
+		+ "\r\n"
+		+ _text;
+
+	if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
+    	std::cerr << "Failed to send response to the client.\n";
+	}
+}
+
+
 void Server::fileExtensionInit() {
 	int key = 0;
 	_fileExtension[key] = ".html";
 	++key;
 	_fileExtension[key] = ".php";
 }
+
+/*void Server::executeCGI() {
+	int inPipe[2];
+    int outPipe[2];
+
+	if (pipe(inPipe) == -1 || pipe(outPipe) == -1) {
+		std::cerr << "Failed to create pipes.\n";
+		return;
+	}
+
+	pid_t pid = fork();
+	if (pid == -1) {
+		std::cerr << "Failed to fork.\n";
+		return;
+	}
+
+	if (pid == 0) {
+		// Child process
+		close(inPipe[1]);
+		close(outPipe[0]);
+
+		// Redirect stdin and stdout
+		dup2(inPipe[0], STDIN_FILENO);
+		dup2(outPipe[1], STDOUT_FILENO);
+
+		// Execute the CGI script
+		if (execve)
+	}
+}*/
 
 /*void sigInteruption(void)
 {

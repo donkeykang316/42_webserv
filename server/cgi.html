@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CGI Execution Test</title>
+</head>
+<body>
+    <h1>CGI Execution Test Page</h1>
+
+    <!-- Form using GET method -->
+    <form action="/cgi-bin/hello.py" method="GET">
+        <label for="name_get">Enter your name (GET):</label>
+        <input type="text" id="name_get" name="name" />
+        <br /><br />
+        <input type="submit" value="Submit (GET)" />
+    </form>
+
+    <hr />
+
+    <!-- Form using POST method -->
+    <form action="/cgi-bin/hello.py" method="POST">
+        <label for="name_post">Enter your name (POST):</label>
+        <input type="text" id="name_post" name="name" />
+        <br /><br />
+        <input type="submit" value="Submit (POST)" />
+    </form>
+</body>
+</html>
