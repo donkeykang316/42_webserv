@@ -135,16 +135,17 @@ ConfParser::ConfParser(char* filePath) {
 ConfParser::~ConfParser() {}
 
 void ConfParser::printConf() {
-    for (std::map<int, ServerConf>::iterator it = _servers.begin(); it != _servers.end(); ++it) {
-        std::cout << "Server:           " << it->first << std::endl;
-        for (std::map<std::string, std::string>::iterator it2 = it->second._properties.begin(); it2 != it->second._properties.end(); ++it2) {
-            std::cout << it2->first << ":           " << it2->second << std::endl;
+    for (std::map<int, ServerConf>::iterator serverIt = _servers.begin(); serverIt != _servers.end(); ++serverIt) {
+        std::cout << std::left << std::setw(32) << "Server:" << std::right << serverIt->first << std::endl;
+        for (std::map<std::string, std::string>::iterator propIt = serverIt->second._properties.begin(); propIt != serverIt->second._properties.end(); ++propIt) {
+            std::cout << "  " << std::left << std::setw(30) << propIt->first + ":" << std::right << propIt->second << std::endl;
         }
-        for (std::map<std::string, Location>::iterator it2 = it->second._locations.begin(); it2 != it->second._locations.end(); ++it2) {
-            std::cout << "Location:             " << it2->first << std::endl;
-            for (std::map<std::string, std::string>::iterator it3 = it2->second._properties.begin(); it3 != it2->second._properties.end(); ++it3) {
-                std::cout << it3->first << ":           " << it3->second << std::endl;
+        for (std::map<std::string, Location>::iterator locIt = serverIt->second._locations.begin(); locIt != serverIt->second._locations.end(); ++locIt) {
+            std::cout << "  " << std::left << std::setw(30) << "Location:" << std::right << locIt->first << std::endl;
+            for (std::map<std::string, std::string>::iterator locPropIt = locIt->second._properties.begin(); locPropIt != locIt->second._properties.end(); ++locPropIt) {
+                std::cout << "    " << std::left << std::setw(28) << locPropIt->first + ":" << std::right << locPropIt->second << std::endl;
             }
         }
+        std::cout << std::endl;
     }
 }
