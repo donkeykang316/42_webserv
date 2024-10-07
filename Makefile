@@ -16,11 +16,14 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -O0
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) 
 
 $(OBJDIR)%.o: $(SRCDIR)%.cpp
 	@mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+run:
+	./$(NAME) config.conf
 
 clean:
 	$(RM) $(OBJDIR)*.o $(OBJDIR)

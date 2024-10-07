@@ -8,8 +8,9 @@ int	main(int ac, char** av, char** env) {
 		std::cerr << "Usage: ./webserv <config_file>" << std::endl;
 		return 1;
 	}
-	//Server	Server(env);
 
 	ConfParser	parser(av[1]);
-	parser.printConf();
+	//parser.printConf();
+
+	Server	Server(env);
 }

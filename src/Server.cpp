@@ -83,7 +83,7 @@ Server::Server(char** env) {
 				_fds[i].fd = _clientSocketFD;
 				_fds[i].events = POLLIN;
 			}
-
+		}
 		// Read client's request
     	char buffer[1024];
     	/*ssize_t bytesReceived = */ recv(_clientSocketFD, buffer, sizeof(buffer) - 1, 0);
@@ -120,7 +120,12 @@ Server::Server(char** env) {
 				if (execve(path, const_cast<char* const*>(args), env) == -1) {
     				std::cerr << "stat error\n";
 				}*/
-				std::cerr << "stat error\n";
+				/*std::string errorPage = "404.html";
+				getFile(errorPage, fileStat);*/
+				std::string filePath = "server/" + fileAccess;
+    				if (stat(filePath.c_str(), &fileStat) != -1) {
+					getFile(filePath, fileStat);
+				}
 			}
 			size_t cLen = _text.size();
 			std::stringstream contentLen;
@@ -141,7 +146,6 @@ Server::Server(char** env) {
 			if (_fds[i].fd != -1) {
 				close(_fds[i].fd);
 			}
-		}
 		}
 	}
 }
