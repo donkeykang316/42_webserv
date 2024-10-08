@@ -99,7 +99,7 @@ Server::Server(char** env) {
 		std::getline(bufferString, line);
 		if (std::strncmp(line.c_str(), "GET", 3) == 0) {
 			std::cout << "GET recevied\n";
-			sendHTTPResponse(line);
+			sendHTTPResponse(line, env);
 		}
 		for (int i = 1; i < 201; ++i) {
 			if (_fds[i].fd != -1) {
@@ -151,29 +151,25 @@ void Server::getFile(std::string &filePath, struct stat fileStat) {
 	}
 }
 
-void Server::sendHTTPResponse(std::string &line) {
+void Server::sendHTTPResponse(std::string &line, char **env) {
 	std::string tmp = line.substr(line.find(' ') + 1);
 	std::string fileAccess = tmp.substr(1, tmp.find(' ') - 1);
 
 	struct stat fileStat;
-	std::string filePath = "server/" + fileAccess + _fileExtension[0];
-	if (stat(filePath.c_str(), &fileStat) != -1) {
+	if (stat(("server/" + fileAccess + _fileExtension[0]).c_str(), &fileStat) != -1) {
+		std::string filePath = "server/" + fileAccess + _fileExtension[0];
+		std::cout << "html: " << filePath << std::endl;
 		getFile(filePath, fileStat);
-	} else {
-		/*std::string filePath = "server/" + fileAccess + _fileExtension[1];
-		std::cout << "file path:" << filePath << std::endl;
-		const char path[] = "/bin/php";
-		const char *args[] = { "php", "home/kaan/Documents/42_webserv/test.php", NULL };
-		if (execve(path, const_cast<char* const*>(args), env) == -1) {
-    		std::cerr << "stat error\n";
-		}*/
-		/*std::string errorPage = "404.html";
-		getFile(errorPage, fileStat);*/
-		std::string filePath = "server/" + fileAccess;
-    	if (stat(filePath.c_str(), &fileStat) != -1) {
-			getFile(filePath, fileStat);
-		}
+	} else if (stat(("server/" + fileAccess + _fileExtension[1]).c_str(), &fileStat) != -1) {
+		std::string filePath = "server/" + fileAccess + _fileExtension[1];
+		std::cout << "php: " << filePath << std::endl;
+		executeCGI(env, filePath, "php");
+	} else if (stat(("server/" + fileAccess + _fileExtension[2]).c_str(), &fileStat) != -1) {
+		std::string filePath = "server/" + fileAccess + _fileExtension[2];
+		std::cout << "py: " << filePath << std::endl;
+		executeCGI(env, filePath, "python3");
 	}
+
 	size_t cLen = _text.size();
 	std::stringstream contentLen;
     contentLen << cLen;
@@ -196,9 +192,11 @@ void Server::fileExtensionInit() {
 	_fileExtension[key] = ".html";
 	++key;
 	_fileExtension[key] = ".php";
+	++key;
+	_fileExtension[key] = ".py";
 }
 
-/*void Server::executeCGI() {
+void Server::executeCGI(char **env, std::string &filePath, std::string cmd) {
 	int inPipe[2];
     int outPipe[2];
 
@@ -222,10 +220,40 @@ void Server::fileExtensionInit() {
 		dup2(inPipe[0], STDIN_FILENO);
 		dup2(outPipe[1], STDOUT_FILENO);
 
+		std::string cmdPath = "/bin/" + cmd;
+    	char *const argv[] = { const_cast<char*>(cmd.c_str()), const_cast<char*>(filePath.c_str()), NULL };
+		std::cerr << "line: " << filePath << std::endl;
+
 		// Execute the CGI script
-		if (execve)
+		if (execve(cmdPath.c_str(), argv, env) == -1) {
+			std::cerr << "Execution failed!\n";
+			std::exit(1);
+		}
+		std::exit(1);
 	}
-}*/
+
+	int status;
+    if (waitpid(pid, &status, 0) == -1) {
+        std::cerr << "waitpid failed: " << strerror(errno) << std::endl;
+            return ;
+    }
+    if (WIFEXITED(status)) {
+        std::cout << "Child exited with status " << WEXITSTATUS(status) << std::endl;
+    }
+    else if (WIFSIGNALED(status)) {
+        std::cout << "Child killed by signal " << WTERMSIG(status) << std::endl;
+    }
+
+	close(outPipe[1]);
+
+	char buffer[1024];
+    ssize_t bytesRead;
+    while ((bytesRead = read(outPipe[0], buffer, sizeof(buffer))) > 0) {
+            _text.append(buffer, bytesRead);
+    }
+	close(outPipe[0]);
+    
+}
 
 /*void sigInteruption(void)
 {
