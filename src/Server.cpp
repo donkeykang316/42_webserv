@@ -1,12 +1,15 @@
 #include "Server.hpp"
 
+Server::Server() {
+	memset(&_clientAddr, 0 , sizeof(_clientAddr));
+}
+
 Server::Server(char** env) {
-	(void)env;
-
 	struct addrinfo hints;
-	struct addrinfo *res;
-	struct addrinfo *rp;
+	struct addrinfo *res = NULL;
+	struct addrinfo *rp = NULL;
 
+	Server();
 	_text.clear();
 	memset(&hints, 0 , sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -86,32 +89,96 @@ Server::Server(char** env) {
 		}
 		// Read client's request
     	char buffer[1024];
-    	/*ssize_t bytesReceived = */ recv(_clientSocketFD, buffer, sizeof(buffer) - 1, 0);
-    	/*if (bytesReceived == -1) {
+    	ssize_t bytesReceived = recv(_clientSocketFD, buffer, sizeof(buffer) - 1, 0);
+    	if (bytesReceived == -1) {
         	std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
         	close(_clientSocketFD);
         	return;
-    	}*/
+    	}
 		std::cout << "buffer:\n" << buffer << std::endl;
-		//std::cout << "byereceived: " << bytesReceived << std::endl;
-		std::string	line;
+
 		std::istringstream bufferString(buffer);
-		std::getline(bufferString, line);
-		if (std::strncmp(line.c_str(), "GET", 3) == 0) {
+		setEnv(bufferString);
+		//printEnv();
+
+		std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
+		if (it->second.first == GET) {
 			std::cout << "GET recevied\n";
-			sendHTTPResponse(line, env);
+			sendHTTPResponse(it->second.second, env);
 		}
 		for (int i = 1; i < 201; ++i) {
 			if (_fds[i].fd != -1) {
 				close(_fds[i].fd);
 			}
 		}
-		_text.clear();
+		iteratorClean();
 	}
 }
 
 Server::~Server() {
 	close(_socketFD);
+}
+
+void Server::setEnv(std::istringstream &bufferString) {
+	std::string	line;
+
+	std::getline(bufferString, line);
+	std::istringstream iss0(line);
+	std::string method;
+    std::string path;
+    std::string protocol;
+	iss0 >> method >> path >> protocol;
+	std::string protocolName = protocol.substr(0, protocol.find('/'));
+    std::string protocolVersion = protocol.substr(protocol.find('/') + 1);
+	envVars env0;
+	env0.first = method;
+	env0.second = path;
+	_clientFeedback["REQUEST_METHOD"] = env0;
+	envVars env1;
+	env1.first = protocolName;
+	env1.second = protocolVersion;
+	_clientFeedback["PROTOCOL_INFO"] = env1;
+
+	std::getline(bufferString, line);
+	std::istringstream iss1(line);
+	std::string host;
+    std::string IPPort;
+	std::string	port = "Port";
+	iss1 >> host >> IPPort;
+	std::string hostNew = host.substr(0, host.length() - 1);
+	std::string IP = IPPort.substr(0, IPPort.find(':'));
+    std::string portNbr = IPPort.substr(IPPort.find(':') + 1);
+	envVars env2;
+	env2.first = hostNew;
+	env2.second = IP;
+	_clientFeedback["IP_ADDRESS"] = env2;
+	envVars env3;
+	env3.first = port;
+	env3.second = portNbr;
+	_clientFeedback["PORT_NBR"] = env3;
+
+	int i = 0;
+	while (std::getline(bufferString, line)) {
+		envVars env00;
+		std::stringstream ss;
+		++i;
+		ss << i;
+		std::string nbr = ss.str();
+		std::string key = line.substr(0, line.find(':'));
+		env00.first = key;
+		env00.second = line.substr(line.find(':') + 2, line.length());
+		_clientFeedback[nbr] = env00;
+	}
+}
+
+void Server::printEnv() {
+	std::cout << "ENV:\n";
+    for (std::map<std::string, envVars>::iterator It = _clientFeedback.begin(); It != _clientFeedback.end(); ++It) {
+        std::cout << "	" << std::left << std::setw(30) << It->first;
+        std::cout << "  " << std::left << std::setw(30) << It->second.first << " " << It->second.second;
+		std::cout << std::endl;
+    }
+	std::cout << std::endl;
 }
 
 void Server::getFile(std::string &filePath, struct stat fileStat) {
@@ -151,9 +218,12 @@ void Server::getFile(std::string &filePath, struct stat fileStat) {
 	}
 }
 
-void Server::sendHTTPResponse(std::string &line, char **env) {
-	std::string tmp = line.substr(line.find(' ') + 1);
-	std::string fileAccess = tmp.substr(1, tmp.find(' ') - 1);
+void Server::sendHTTPResponse(std::string &method, char **env) {
+	std::cout << "metod: " << method << std::endl;
+
+	std::string fileAccess = method;
+
+	std::cout << "fileAccess: " << fileAccess << std::endl;
 
 	struct stat fileStat;
 	if (stat(("server/" + fileAccess + _fileExtension[0]).c_str(), &fileStat) != -1) {
@@ -253,6 +323,15 @@ void Server::executeCGI(char **env, std::string &filePath, std::string cmd) {
     }
 	close(outPipe[0]);
     
+}
+
+void Server::iteratorClean() {
+	_text.clear();
+	for (std::map<std::string, envVars>::iterator it = _clientFeedback.begin(); it != _clientFeedback.end(); ++it) {
+		it->second.first.clear();
+		it->second.second.clear();
+	}
+	_clientFeedback.clear();
 }
 
 /*void sigInteruption(void)

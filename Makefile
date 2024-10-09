@@ -11,7 +11,7 @@ OBJ = $(SRC:$(SRCDIR)%.cpp=$(OBJDIR)%.o)
 
 RM		= rm -fr
 CC		= c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -O0
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -O0 -g
 
 all: $(NAME)
 
@@ -24,6 +24,9 @@ $(OBJDIR)%.o: $(SRCDIR)%.cpp
 
 run:
 	./$(NAME) config.conf
+
+val:
+	valgrind ./$(NAME) config.conf
 
 clean:
 	$(RM) $(OBJDIR)*.o $(OBJDIR)
