@@ -93,7 +93,6 @@ Server::Server(char** env) {
     	if (bytesReceived == -1) {
         	std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
         	close(_clientSocketFD);
-        	return;
     	}
 		std::cout << "buffer:\n" << buffer << std::endl;
 
@@ -120,55 +119,138 @@ Server::~Server() {
 }
 
 void Server::setEnv(std::istringstream &bufferString) {
-	std::string	line;
+    std::string line;
 
-	std::getline(bufferString, line);
-	std::istringstream iss0(line);
-	std::string method;
-    std::string path;
-    std::string protocol;
-	iss0 >> method >> path >> protocol;
-	std::string protocolName = protocol.substr(0, protocol.find('/'));
-    std::string protocolVersion = protocol.substr(protocol.find('/') + 1);
-	envVars env0;
-	env0.first = method;
-	env0.second = path;
-	_clientFeedback["REQUEST_METHOD"] = env0;
-	envVars env1;
-	env1.first = protocolName;
-	env1.second = protocolVersion;
-	_clientFeedback["PROTOCOL_INFO"] = env1;
+    // 1. Parse the Request Line
+    if (!std::getline(bufferString, line)) {
+        std::cerr << "Error: Empty request or failed to read request line.\n";
+        return; // Or throw an exception
+    }
 
-	std::getline(bufferString, line);
-	std::istringstream iss1(line);
-	std::string host;
-    std::string IPPort;
-	std::string	port = "Port";
-	iss1 >> host >> IPPort;
-	std::string hostNew = host.substr(0, host.length() - 1);
-	std::string IP = IPPort.substr(0, IPPort.find(':'));
-    std::string portNbr = IPPort.substr(IPPort.find(':') + 1);
-	envVars env2;
-	env2.first = hostNew;
-	env2.second = IP;
-	_clientFeedback["IP_ADDRESS"] = env2;
-	envVars env3;
-	env3.first = port;
-	env3.second = portNbr;
-	_clientFeedback["PORT_NBR"] = env3;
+    std::istringstream requestLineStream(line);
+    std::string method, path, protocol;
 
-	int i = 0;
-	while (std::getline(bufferString, line)) {
-		envVars env00;
-		std::stringstream ss;
-		++i;
-		ss << i;
-		std::string nbr = ss.str();
-		std::string key = line.substr(0, line.find(':'));
-		env00.first = key;
-		env00.second = line.substr(line.find(':') + 2, line.length());
-		_clientFeedback[nbr] = env00;
-	}
+    if (!(requestLineStream >> method >> path >> protocol)) {
+        std::cerr << "Error: Malformed request line.\n";
+        return; // Or throw an exception
+    }
+
+    // Validate and parse protocol
+    size_t slashPos = protocol.find('/');
+    if (slashPos != std::string::npos && slashPos + 1 < protocol.size()) {
+        std::string protocolName = protocol.substr(0, slashPos);
+        std::string protocolVersion = protocol.substr(slashPos + 1);
+
+        // Store Request Method and Path
+        envVars requestEnv;
+        requestEnv.first = method;
+        requestEnv.second = path;
+        _clientFeedback["REQUEST_METHOD"] = requestEnv;
+
+        // Store Protocol Information
+        envVars protocolEnv;
+        protocolEnv.first = protocolName;
+        protocolEnv.second = protocolVersion;
+        _clientFeedback["PROTOCOL_INFO"] = protocolEnv;
+    } else {
+        std::cerr << "Error: Invalid protocol format in request line.\n";
+        return; // Or throw an exception
+    }
+
+    // 2. Parse the Host Header
+    if (!std::getline(bufferString, line)) {
+        std::cerr << "Error: Missing Host header.\n";
+        return; // Or throw an exception
+    }
+
+    size_t colonPos = line.find(':');
+    if (colonPos == std::string::npos) {
+        std::cerr << "Error: Malformed Host header.\n";
+        return; // Or throw an exception
+    }
+
+    std::string headerName = line.substr(0, colonPos);
+    // Trim whitespace from headerName
+    headerName.erase(headerName.find_last_not_of(" \t\r\n") + 1);
+    headerName.erase(0, headerName.find_first_not_of(" \t\r\n"));
+
+    if (headerName != "Host") {
+        std::cerr << "Error: Expected Host header, found: " << headerName << "\n";
+        return; // Or handle differently
+    }
+
+    std::string hostValue = line.substr(colonPos + 1);
+    // Trim whitespace from hostValue
+    size_t start = hostValue.find_first_not_of(" \t\r\n");
+    size_t end = hostValue.find_last_not_of(" \t\r\n");
+    if (start == std::string::npos || end == std::string::npos) {
+        std::cerr << "Error: Empty Host header value.\n";
+        return; // Or throw an exception
+    }
+    hostValue = hostValue.substr(start, end - start + 1);
+
+    // Split hostValue into IP (or domain) and Port
+    size_t portPos = hostValue.find_last_of(':');
+    if (portPos != std::string::npos && portPos + 1 < hostValue.size()) {
+        std::string ipOrDomain = hostValue.substr(0, portPos);
+        std::string portNbr = hostValue.substr(portPos + 1);
+
+        // Store IP Address or Domain
+        envVars ipEnv;
+        ipEnv.first = "Host";
+        ipEnv.second = ipOrDomain;
+        _clientFeedback["IP_ADDRESS"] = ipEnv;
+
+        // Store Port Number
+        envVars portEnv;
+        portEnv.first = "Port";
+        portEnv.second = portNbr;
+        _clientFeedback["PORT_NBR"] = portEnv;
+    } else {
+        std::cerr << "Error: Host header missing port or malformed.\n";
+        return; // Or throw an exception
+    }
+
+    // 3. Parse Additional Headers
+    int headerCount = 0;
+    while (std::getline(bufferString, line)) {
+        // Skip empty lines
+        if (line.empty() || line == "\r") {
+            continue;
+        }
+
+        size_t sepPos = line.find(':');
+        if (sepPos == std::string::npos || sepPos + 1 >= line.size()) {
+            std::cerr << "Warning: Malformed header line: " << line << "\n";
+            continue; // Skip or handle differently
+        }
+
+        std::string key = line.substr(0, sepPos);
+        // Trim whitespace from key
+        key.erase(key.find_last_not_of(" \t\r\n") + 1);
+        key.erase(0, key.find_first_not_of(" \t\r\n"));
+
+        std::string value = line.substr(sepPos + 1);
+        // Trim whitespace from value
+        size_t valStart = value.find_first_not_of(" \t\r\n");
+        size_t valEnd = value.find_last_not_of(" \t\r\n");
+        if (valStart == std::string::npos || valEnd == std::string::npos) {
+            value = "";
+        } else {
+            value = value.substr(valStart, valEnd - valStart + 1);
+        }
+
+        // Store headers with their actual names
+        envVars headerEnv;
+        headerEnv.first = key;
+        headerEnv.second = value;
+        _clientFeedback[key] = headerEnv;
+
+        ++headerCount;
+    }
+
+    // Optional: Log the number of headers parsed
+    std::cout << "Parsed " << headerCount << " additional headers.\n";
 }
 
 void Server::printEnv() {
