@@ -1,22 +1,21 @@
 #include "Server.hpp"
 
 Server::Server() {
-	memset(&_clientAddr, 0 , sizeof(_clientAddr));
+	std::cout << "server default constructor\n";
 }
 
 Server::Server(char** env) {
+	serverSetup();
 	struct addrinfo hints;
 	struct addrinfo *res = NULL;
 	struct addrinfo *rp = NULL;
 
-	Server();
-	_text.clear();
 	memset(&hints, 0 , sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	const char *port = "5000";
+	const char* port = static_cast<const char*>(_port.c_str());
 	int status = getaddrinfo(NULL, port, &hints, &res);
 	if (status != 0) {
 		std::cerr << gai_strerror(status);
@@ -74,7 +73,7 @@ Server::Server(char** env) {
 			std::cerr << "poll error\n";
 		}
 
-		std::cout << "Server is listening on port " << port << std::endl;
+		std::cout << "Server is listening on port " << _port << std::endl;
 		socklen_t clientAddrLen = sizeof(_clientAddr);
 		_clientSocketFD = accept(_socketFD, (struct sockaddr *)&_clientAddr, &clientAddrLen);
 		if (_clientSocketFD < 0) {
@@ -102,7 +101,6 @@ Server::Server(char** env) {
 
 		std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
 		if (it->second.first == GET) {
-			std::cout << "GET recevied\n";
 			sendHTTPResponse(it->second.second, env);
 		}
 		for (int i = 1; i < 201; ++i) {
@@ -116,6 +114,65 @@ Server::Server(char** env) {
 
 Server::~Server() {
 	close(_socketFD);
+}
+
+void Server::serverSetup() {
+	_port = "5000";
+	memset(&_clientAddr, 0 , sizeof(_clientAddr));
+	getAllFiles();
+	//printPathFile();
+}
+
+void Server::getAllFiles() {
+	//will be replace with location
+	std::vector<std::string> locationPath;
+	locationPath.push_back("www/");
+	locationPath.push_back("www/cgi_bin/");
+	locationPath.push_back("www/error_pages/");
+	locationPath.push_back("www/subpage/");
+
+    for (std::vector<std::string>::iterator locit = locationPath.begin(); locit != locationPath.end(); ++locit) {
+        allFiles fileNames;
+
+        // Open the directory
+        DIR* dir = opendir(locit->c_str());
+        if (dir == NULL) {
+            std::cerr << "Error: Could not open directory " << *locit << " - " << strerror(errno) << std::endl;
+            continue;  // Skip to the next directory
+        }
+
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL) {
+            std::string name = entry->d_name;
+
+            // Skip current and parent directories
+            if (name == "." || name == "..")
+                continue;
+
+            // Construct the full path for further processing if needed
+            std::string fullPath = *locit + name;
+
+            // Optionally, check if the entry is a file or directory
+            struct stat info;
+            if (stat(fullPath.c_str(), &info) != 0) {
+                std::cerr << "Error: Could not get information for " << fullPath << " - " << strerror(errno) << std::endl;
+                continue;
+            }
+
+            /*if (S_ISDIR(info.st_mode)) {
+                std::cout << "[DIR]  " << name << std::endl;
+            } else if (S_ISREG(info.st_mode)) {
+                std::cout << "[FILE] " << name << std::endl;
+            } else {
+                std::cout << "[OTHER] " << name << std::endl;
+            }*/
+
+            fileNames.push_back("/" + name);  // Add the file/directory name to the vector
+        }
+
+        closedir(dir);
+        _serverPath[*locit] = fileNames;  // Assign the collected file names to the map
+    }
 }
 
 void Server::setEnv(std::istringstream &bufferString) {
@@ -249,31 +306,11 @@ void Server::setEnv(std::istringstream &bufferString) {
         ++headerCount;
     }
 
-    // Optional: Log the number of headers parsed
+    // Log the number of headers parsed
     std::cout << "Parsed " << headerCount << " additional headers.\n";
 }
 
-void Server::printEnv() {
-	std::cout << "ENV:\n";
-    for (std::map<std::string, envVars>::iterator It = _clientFeedback.begin(); It != _clientFeedback.end(); ++It) {
-        std::cout << "	" << std::left << std::setw(30) << It->first;
-        std::cout << "  " << std::left << std::setw(30) << It->second.first << " " << It->second.second;
-		std::cout << std::endl;
-    }
-	std::cout << std::endl;
-}
-
 void Server::getFile(std::string &filePath, struct stat fileStat) {
-
-	/*std::string filePath = "server/" + file + _fileExtension[0];
-    if (stat(filePath.c_str(), &fileStat) == -1) {
-		std::string filePath = "server/" + file + _fileExtension[1];
-		std::cout << "file path:" << filePath << std::endl;
-		if (stat(filePath.c_str(), &fileStat) == -1) {
-    		std::cerr << "stat error\n";
-		}
-	}*/
-
 	// Check if the entry is a regular file
 	if (S_ISREG(fileStat.st_mode)) {
     	// Open the file
@@ -301,13 +338,11 @@ void Server::getFile(std::string &filePath, struct stat fileStat) {
 }
 
 void Server::sendHTTPResponse(std::string &method, char **env) {
-	std::cout << "metod: " << method << std::endl;
-
 	std::string fileAccess = method;
 
-	std::cout << "fileAccess: " << fileAccess << std::endl;
+	(void)env;
 
-	struct stat fileStat;
+	/*struct stat fileStat;
 	if (stat(("server/" + fileAccess + _fileExtension[0]).c_str(), &fileStat) != -1) {
 		std::string filePath = "server/" + fileAccess + _fileExtension[0];
 		std::cout << "html: " << filePath << std::endl;
@@ -320,7 +355,20 @@ void Server::sendHTTPResponse(std::string &method, char **env) {
 		std::string filePath = "server/" + fileAccess + _fileExtension[2];
 		std::cout << "py: " << filePath << std::endl;
 		executeCGI(env, filePath, "python3");
-	}
+	}*/
+
+	for (std::map<std::string, allFiles>::iterator it = _serverPath.begin(); it != _serverPath.end(); ++it) {
+		struct stat fileStat;
+        for (size_t i = 0; i < it->second.size(); ++i) {
+			//std::cerr << "pre filepath error: " << fileAccess << " | " << it->first << " : " << it->second[i] << " | " << std::strncmp(fileAccess.c_str(), it->second[i].c_str(), fileAccess.length()) << std::endl;
+			if (std::strncmp(fileAccess.c_str(), it->second[i].c_str(), fileAccess.length()) == 0
+				&& stat((it->first + it->second[i]).c_str(), &fileStat) != -1) {
+				std::string filePath = it->first + it->second[i];
+				std::cerr << "filepath error: " << filePath << std::endl;
+				getFile(filePath, fileStat);
+			}	
+        }
+    }
 
 	size_t cLen = _text.size();
 	std::stringstream contentLen;
@@ -414,6 +462,26 @@ void Server::iteratorClean() {
 		it->second.second.clear();
 	}
 	_clientFeedback.clear();
+}
+
+void Server::printEnv() {
+	std::cout << "ENV:\n";
+    for (std::map<std::string, envVars>::iterator It = _clientFeedback.begin(); It != _clientFeedback.end(); ++It) {
+        std::cout << "	" << std::left << std::setw(30) << It->first;
+        std::cout << "  " << std::left << std::setw(30) << It->second.first << " " << It->second.second;
+		std::cout << std::endl;
+    }
+	std::cout << std::endl;
+}
+
+void Server::printPathFile() {
+	std::cout << "\nServer Path Map Contents:\n";
+    for (std::map<std::string, allFiles>::iterator it = _serverPath.begin(); it != _serverPath.end(); ++it) {
+        std::cout << "Directory: " << it->first << std::endl;
+        for (size_t i = 0; i < it->second.size(); ++i) {
+            std::cout << "  - " << it->second[i] << std::endl;
+        }
+    }
 }
 
 /*void sigInteruption(void)

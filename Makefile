@@ -23,10 +23,10 @@ $(OBJDIR)%.o: $(SRCDIR)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run:
-	./$(NAME) config.conf
+	@./$(NAME) config.conf
 
 val:
-	valgrind ./$(NAME) config.conf
+	@valgrind ./$(NAME) config.conf
 
 clean:
 	$(RM) $(OBJDIR)*.o $(OBJDIR)

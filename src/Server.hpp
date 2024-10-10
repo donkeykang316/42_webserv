@@ -1,10 +1,12 @@
 #include <iostream>
 #include <unistd.h>
+#include <string>
 #include <cstring>
 #include <sstream>
 #include <fstream>
 #include <fcntl.h>
 #include <map>
+#include <vector>
 #include <algorithm>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -29,11 +31,14 @@
 class Server {
 private:
 	int											_socketFD;
+	std::string									_port;
 	int											_clientSocketFD;
 	struct sockaddr_in							_clientAddr;
 	std::string									_text;
 	struct pollfd 								_fds[201];
 	std::map<std::string, std::string>			_htmlFile;
+	typedef std::vector<std::string>			allFiles;
+	std::map<std::string, allFiles>				_serverPath;
 	std::map<std::string, std::string>			_httpResponse;
 	std::map<int, std::string>					_fileExtension;
 	typedef std::pair<std::string, std::string>	envVars;
@@ -43,6 +48,8 @@ public:
 	Server();
 	Server(char** env);
 	~Server();
+	void serverSetup();
+	void getAllFiles();
 	void setEnv(std::istringstream &bufferString);
 	void fileExtensionInit();
 	void getFile(std::string &filePath, struct stat fileStat);
@@ -51,6 +58,7 @@ public:
 	void iteratorClean();
 
 	void printEnv();
+	void printPathFile();
 };
 
 //void sigInteruption(void);
