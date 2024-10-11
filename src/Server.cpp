@@ -6,21 +6,6 @@ Server::Server() {
 
 Server::Server(char** env) {
 	serverSetup();
-	/*struct addrinfo hints;
-	struct addrinfo *res = NULL;
-	struct addrinfo *rp = NULL;
-	
-
-	memset(&hints, 0 , sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;*/
-
-	/*const char* port = static_cast<const char*>(_port.c_str());
-	int status = getaddrinfo(NULL, port, &hints, &res);
-	if (status != 0) {
-		std::cerr << gai_strerror(status);
-	}*/
 
 	// will be replaced with config parser
 	std::vector<std::string> ports;
@@ -116,45 +101,17 @@ Server::Server(char** env) {
                     	--i;
                     	continue;
 					}
-				}
+				} else if (it->second.first == POST) {
+                    if (!postResponse(it->second.second, clientfd, env)) {
+                    	close(clientfd);
+                		FD_CLR(clientfd, &master_set);
+                    	clientSockets.erase(clientSockets.begin() + i);
+                    	--i;
+                    	continue;
+					}
+                }
 			}
 		}
-
-		/*std::cout << "Server is listening on port " << _port << std::endl;
-		socklen_t clientAddrLen = sizeof(_clientAddr);
-		_clientSocketFD = accept(_listenSockets[0], (struct sockaddr *)&_clientAddr, &clientAddrLen);
-		if (_clientSocketFD < 0) {
-			std::cerr << "Could not connect with the client!\n";
-		}
-
-		for (int i = 1; i < 201; ++i) {
-			if (_clientfds[i].fd == -1) {
-				_clientfds[i].fd = _clientSocketFD;
-				_clientfds[i].events = POLLIN;
-			}
-		}
-		// Read client's request
-    	char buffer[1024];
-    	ssize_t bytesReceived = recv(_clientSocketFD, buffer, sizeof(buffer) - 1, 0);
-    	if (bytesReceived == -1) {
-        	std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
-        	close(_clientSocketFD);
-    	}
-		std::cout << "buffer:\n" << buffer << std::endl;
-
-		std::istringstream bufferString(buffer);
-		setEnv(bufferString);
-		//printEnv();
-
-		std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
-		if (it->second.first == GET) {
-			sendHTTPResponse(it->second.second, env);
-		}
-		for (int i = 1; i < 201; ++i) {
-			if (_clientfds[i].fd != -1) {
-				close(_clientfds[i].fd);
-			}
-		}*/
 		iteratorClean();
 	}
 }
@@ -162,7 +119,6 @@ Server::Server(char** env) {
 Server::~Server() {}
 
 void Server::serverSetup() {
-	_port = "5000";
 	memset(&_clientAddr, 0 , sizeof(_clientAddr));
 	getAllFiles();
 	//printPathFile();
@@ -484,7 +440,7 @@ bool Server::sendHTTPResponse(std::string &method, int clientfd, char **env) {
 				&& stat((it->first + it->second[i]).c_str(), &fileStat) != -1) {
 				std::string filePath = it->first + it->second[i];
 				getFile(filePath, fileStat);
-			}	
+			}
         }
     }
 
@@ -505,6 +461,56 @@ bool Server::sendHTTPResponse(std::string &method, int clientfd, char **env) {
 	}
 	return true;
 }
+
+bool Server::postResponse(std::string &method, int clientfd, char** env) {
+    (void)clientfd;
+    std::string fileAccess = method;
+	/*struct stat fileStat;
+	if (stat(("server/" + fileAccess + _fileExtension[0]).c_str(), &fileStat) != -1) {
+		std::string filePath = "server/" + fileAccess + _fileExtension[0];
+		std::cout << "html: " << filePath << std::endl;
+		getFile(filePath, fileStat);
+	} else if (stat(("server/" + fileAccess + _fileExtension[1]).c_str(), &fileStat) != -1) {
+		std::string filePath = "server/" + fileAccess + _fileExtension[1];
+		std::cout << "php: " << filePath << std::endl;
+		executeCGI(env, filePath, "php");
+	} else if (stat(("server/" + fileAccess + _fileExtension[2]).c_str(), &fileStat) != -1) {
+		std::string filePath = "server/" + fileAccess + _fileExtension[2];
+		std::cout << "py: " << filePath << std::endl;
+		executeCGI(env, filePath, "python3");
+	}*/
+
+    for (std::map<std::string, allFiles>::iterator it = _serverPath.begin(); it != _serverPath.end(); ++it) {
+		struct stat fileStat;
+        for (size_t i = 0; i < it->second.size(); ++i) {
+			if (std::strncmp(fileAccess.c_str(), it->second[i].c_str(), fileAccess.length()) == 0
+				&& stat((it->first + it->second[i]).c_str(), &fileStat) != -1) {
+				std::string filePath = it->first + it->second[i];
+				executeCGI(env, filePath, "python3");
+			}
+        }
+    }
+
+    size_t cLen = _text.size();
+	std::stringstream contentLen;
+    contentLen << cLen;
+	std::string cL = contentLen.str();
+	std::cout << cL << std::endl;
+	// Prepare an HTTP response
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
+		+ cL + "\r\n"
+		+ "\r\n"
+		+ _text;
+
+    std::cout << "stored in text: " << _text << std::endl;
+
+	if (send(clientfd, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
+    	std::cerr << "Failed to send response to the client.\n";
+		return false;
+	}
+	return true;
+}
+
 
 void Server::executeCGI(char **env, std::string &filePath, std::string cmd) {
 	int inPipe[2];

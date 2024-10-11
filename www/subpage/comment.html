@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comment Section</title>
     <style>
+        /* (Your existing CSS styles) */
         body {
             font-family: Arial, sans-serif;
             margin: 2em;
@@ -60,7 +61,7 @@
 <body>
     <div class="comment-section">
         <h2>Leave a Comment</h2>
-        <form class="comment-form" action="/submit_comment" method="POST">
+        <form class="comment-form" action="post_comment" method="POST">
             <label for="author">Name:</label>
             <input type="text" id="author" name="author" required>
 
@@ -72,8 +73,8 @@
 
         <h3>Comments</h3>
         <ul class="comments" id="comments-list">
-            <!-- Existing comments will be inserted here by the server or JavaScript -->
-            <!-- Example of a comment structure:
+            <!-- Comments will be dynamically inserted by the CGI script -->
+            <!-- Example:
             <li class="comment">
                 <div class="author">John Doe</div>
                 <div class="timestamp">2024-04-27 14:35</div>
@@ -82,44 +83,5 @@
             -->
         </ul>
     </div>
-
-    <!-- Optional: JavaScript to fetch and display comments dynamically -->
-    <script>
-        // Uncomment and modify the URL to fetch comments via AJAX if desired
-        /*
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/get_comments')
-                .then(response => response.json())
-                .then(data => {
-                    const commentsList = document.getElementById('comments-list');
-                    data.comments.forEach(comment => {
-                        const commentItem = document.createElement('li');
-                        commentItem.classList.add('comment');
-
-                        const author = document.createElement('div');
-                        author.classList.add('author');
-                        author.textContent = comment.author;
-
-                        const timestamp = document.createElement('div');
-                        timestamp.classList.add('timestamp');
-                        timestamp.textContent = comment.timestamp;
-
-                        const content = document.createElement('div');
-                        content.classList.add('content');
-                        content.textContent = comment.content;
-
-                        commentItem.appendChild(author);
-                        commentItem.appendChild(timestamp);
-                        commentItem.appendChild(content);
-
-                        commentsList.appendChild(commentItem);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching comments:', error);
-                });
-        });
-        */
-    </script>
 </body>
 </html>

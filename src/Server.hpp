@@ -30,7 +30,6 @@
 
 class Server {
 private:
-	std::string									_port;
 	struct sockaddr_in							_clientAddr;
 	std::string									_text;
 	std::vector<int>							_listenSockets;
@@ -53,6 +52,7 @@ public:
 	void setEnv(std::istringstream &bufferString);
 	void getFile(std::string &filePath, struct stat fileStat);
 	bool sendHTTPResponse(std::string &method, int clientfd, char** env);
+	bool postResponse(std::string &method, int clientfd, char** env);
 	void executeCGI(char** env, std::string &filePath, std::string cmd);
 	void iteratorClean();
 
