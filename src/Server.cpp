@@ -6,84 +6,131 @@ Server::Server() {
 
 Server::Server(char** env) {
 	serverSetup();
-	struct addrinfo hints;
+	/*struct addrinfo hints;
 	struct addrinfo *res = NULL;
 	struct addrinfo *rp = NULL;
+	
 
 	memset(&hints, 0 , sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+	hints.ai_flags = AI_PASSIVE;*/
 
-	const char* port = static_cast<const char*>(_port.c_str());
+	/*const char* port = static_cast<const char*>(_port.c_str());
 	int status = getaddrinfo(NULL, port, &hints, &res);
 	if (status != 0) {
 		std::cerr << gai_strerror(status);
-	}
+	}*/
 
-	for (rp = res; rp != NULL; rp = rp->ai_next) {
-		_socketFD = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (_socketFD < 0) {
-			std::cerr << "socket ERROR\n";
-		}
+	// will be replaced with config parser
+	std::vector<std::string> ports;
+	ports.push_back("5000");
+	ports.push_back("7000");
+	ports.push_back("8000");
+	ports.push_back("8080");
+	ports.push_back("9000");
 
-		int opt = 1;
-		if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-			std::cerr << "setsocket ERROR\n";
-			close(_socketFD);
-			break;
-		}
-	
-		if (bind(_socketFD, rp->ai_addr, rp->ai_addrlen) == 0) {
-			std::cout << "binding success\n";
-			break;
-		}
-		close(_socketFD);
-	}
+	// Create listening sockets for each port
+    for (size_t i = 0; i < ports.size(); ++i) {
+        int sock = createListenSocket(ports[i]);
+        _listenSockets.push_back(sock);
+    }
 
-	if (rp == NULL) {
-		std::cerr << "bind failed\n";
-		close(_socketFD);
-	}
+	// Set up the master file descriptor set
+    fd_set master_set, read_fds;
+    FD_ZERO(&master_set);
+    int fd_max = 0;
 
-	freeaddrinfo(res);
+	// Add listening sockets to the master set
+    for (size_t i = 0; i < _listenSockets.size(); ++i) {
+        FD_SET(_listenSockets[i], &master_set);
+        if (_listenSockets[i] > fd_max) {
+            fd_max = _listenSockets[i];
+        }
+    }
 
-	if (rp == NULL) {
-		fprintf(stderr, "server: failed to bind\n");
-		std::cerr << "Bind failed\n";
-		//exit
-	}
-
-	if (listen(_socketFD, 5) < 0) {
-		std::cerr << "listen failed\n";
-		close(_socketFD);
-	}
-
-	fileExtensionInit();
-
-	// Initialize all client fds to -1 (unused)
-	for (int i = 0; i < 201; ++i) {
-		_fds[i].fd = -1;
-		_fds[i].events = 0;
-	}
-	_fds[0].fd = _socketFD;
-	_fds[0].events = POLLIN; //set event to ready to read
+	// Vector to keep track of client sockets
+    std::vector<int> clientSockets;
 	while(1) {
-		if (poll(_fds, 201, -1) == -1) {
-			std::cerr << "poll error\n";
+		read_fds = master_set;
+
+		int activity = select(fd_max + 1, &read_fds, NULL, NULL, NULL);
+        if (activity < 0) {
+            if (errno == EINTR) continue; // Interrupted by signal
+            std::cerr << "select" << errno << std::endl;
+            break;
+        }
+
+		// Iterate through listening sockets to check for new connections
+        for (size_t i = 0; i < _listenSockets.size(); ++i) {
+			int sockfd = _listenSockets[i];
+			if (FD_ISSET(sockfd, &read_fds)) {
+				struct sockaddr_in client_addr;
+                socklen_t addrlen = sizeof(client_addr);
+                int newfd = accept(sockfd, (struct sockaddr*)&client_addr, &addrlen);
+                if (newfd < 0) {
+                    if (errno != EWOULDBLOCK && errno != EAGAIN) {
+						std::cerr << "accept" << errno << std::endl;
+                    }
+                    continue;
+                }
+				if (!setNonBlocking(newfd)) {
+					std::cerr << "fcntl" << errno << std::endl;
+                    close(newfd);
+                    continue;
+                }
+
+				// Add the new socket to the master set and client list
+                FD_SET(newfd, &master_set);
+                if (newfd > fd_max) fd_max = newfd;
+                clientSockets.push_back(newfd);
+			}
 		}
 
-		std::cout << "Server is listening on port " << _port << std::endl;
+		// Iterate through client sockets to check for incoming data
+        for (size_t i = 0; i < clientSockets.size(); ++i) {
+			int clientfd = clientSockets[i];
+            if (FD_ISSET(clientfd, &read_fds)) {
+				// Read client's request
+				char buffer[1024];
+				ssize_t bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
+				if (bytesReceived == -1) {
+					std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
+					close(clientfd);
+                	FD_CLR(clientfd, &master_set);
+                	// Remove from clientSockets
+                	clientSockets.erase(clientSockets.begin() + i);
+                	--i; // Adjust index after removal
+                	continue;
+				}
+				std::cout << "buffer:\n" << buffer << std::endl;
+				std::istringstream bufferString(buffer);
+				setEnv(bufferString);
+				//printEnv();
+				std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
+				if (it->second.first == GET) {
+					if (!sendHTTPResponse(it->second.second, clientfd, env)) {
+                    	close(clientfd);
+                		FD_CLR(clientfd, &master_set);
+                    	clientSockets.erase(clientSockets.begin() + i);
+                    	--i;
+                    	continue;
+					}
+				}
+			}
+		}
+
+		/*std::cout << "Server is listening on port " << _port << std::endl;
 		socklen_t clientAddrLen = sizeof(_clientAddr);
-		_clientSocketFD = accept(_socketFD, (struct sockaddr *)&_clientAddr, &clientAddrLen);
+		_clientSocketFD = accept(_listenSockets[0], (struct sockaddr *)&_clientAddr, &clientAddrLen);
 		if (_clientSocketFD < 0) {
 			std::cerr << "Could not connect with the client!\n";
 		}
 
 		for (int i = 1; i < 201; ++i) {
-			if (_fds[i].fd == -1) {
-				_fds[i].fd = _clientSocketFD;
-				_fds[i].events = POLLIN;
+			if (_clientfds[i].fd == -1) {
+				_clientfds[i].fd = _clientSocketFD;
+				_clientfds[i].events = POLLIN;
 			}
 		}
 		// Read client's request
@@ -104,17 +151,15 @@ Server::Server(char** env) {
 			sendHTTPResponse(it->second.second, env);
 		}
 		for (int i = 1; i < 201; ++i) {
-			if (_fds[i].fd != -1) {
-				close(_fds[i].fd);
+			if (_clientfds[i].fd != -1) {
+				close(_clientfds[i].fd);
 			}
-		}
+		}*/
 		iteratorClean();
 	}
 }
 
-Server::~Server() {
-	close(_socketFD);
-}
+Server::~Server() {}
 
 void Server::serverSetup() {
 	_port = "5000";
@@ -122,6 +167,82 @@ void Server::serverSetup() {
 	getAllFiles();
 	//printPathFile();
 }
+
+bool Server::setNonBlocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1)
+		return false;
+    flags |= O_NONBLOCK;
+    return (fcntl(sockfd, F_SETFL, flags) != -1);
+}
+
+int Server::createListenSocket(std::string &portInfo) {
+    int sockfd = -1; // Initialize to -1 to indicate invalid socket
+    struct addrinfo hints;
+    struct addrinfo *res = NULL;
+    struct addrinfo *rp = NULL;
+
+    // Initialize hints before calling getaddrinfo
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;      // Allow IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM;  // TCP stream sockets
+    hints.ai_flags = AI_PASSIVE;      // For wildcard IP address
+
+    const char* port = portInfo.c_str(); // No need for static_cast
+
+    // Call getaddrinfo with initialized hints
+    int status = getaddrinfo(NULL, port, &hints, &res);
+    if (status != 0) {
+        std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+        return -1; // Indicate failure
+    }
+
+    // Iterate through the address list and try to bind
+    for (rp = res; rp != NULL; rp = rp->ai_next) {
+        sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sockfd < 0) {
+            std::cerr << "socket creation failed: " << strerror(errno) << std::endl;
+            continue; // Try the next address
+        }
+
+        // Set SO_REUSEADDR to allow reuse of local addresses
+        int opt = 1;
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+            std::cerr << "setsockopt SO_REUSEADDR failed: " << strerror(errno) << std::endl;
+            close(sockfd);
+            sockfd = -1;
+            continue; // Try the next address
+        }
+
+        // Attempt to bind the socket
+        if (bind(sockfd, rp->ai_addr, rp->ai_addrlen) == 0) {
+            std::cout << "Binding successful on port " << port << std::endl;
+            break; // Successfully bound
+        }
+
+        std::cerr << "bind failed: " << strerror(errno) << std::endl;
+        close(sockfd);
+        sockfd = -1; // Reset sockfd
+    }
+
+    freeaddrinfo(res);
+
+    if (rp == NULL) { // No address succeeded
+        std::cerr << "Server: failed to bind to any address on port " << port << std::endl;
+        return -1; // Indicate failure
+    }
+
+    // Start listening on the bound socket
+    if (listen(sockfd, SOMAXCONN) < 0) {
+        std::cerr << "listen failed: " << strerror(errno) << std::endl;
+        close(sockfd);
+        return -1; // Indicate failure
+    }
+
+    std::cout << "Server is listening on port " << port << std::endl;
+    return sockfd; // Return the listening socket file descriptor
+}
+
 
 void Server::getAllFiles() {
 	//will be replace with location
@@ -337,9 +458,8 @@ void Server::getFile(std::string &filePath, struct stat fileStat) {
 	}
 }
 
-void Server::sendHTTPResponse(std::string &method, char **env) {
+bool Server::sendHTTPResponse(std::string &method, int clientfd, char **env) {
 	std::string fileAccess = method;
-
 	(void)env;
 
 	/*struct stat fileStat;
@@ -360,11 +480,9 @@ void Server::sendHTTPResponse(std::string &method, char **env) {
 	for (std::map<std::string, allFiles>::iterator it = _serverPath.begin(); it != _serverPath.end(); ++it) {
 		struct stat fileStat;
         for (size_t i = 0; i < it->second.size(); ++i) {
-			//std::cerr << "pre filepath error: " << fileAccess << " | " << it->first << " : " << it->second[i] << " | " << std::strncmp(fileAccess.c_str(), it->second[i].c_str(), fileAccess.length()) << std::endl;
 			if (std::strncmp(fileAccess.c_str(), it->second[i].c_str(), fileAccess.length()) == 0
 				&& stat((it->first + it->second[i]).c_str(), &fileStat) != -1) {
 				std::string filePath = it->first + it->second[i];
-				std::cerr << "filepath error: " << filePath << std::endl;
 				getFile(filePath, fileStat);
 			}	
         }
@@ -381,19 +499,11 @@ void Server::sendHTTPResponse(std::string &method, char **env) {
 		+ "\r\n"
 		+ _text;
 
-	if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
+	if (send(clientfd, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
     	std::cerr << "Failed to send response to the client.\n";
+		return false;
 	}
-}
-
-
-void Server::fileExtensionInit() {
-	int key = 0;
-	_fileExtension[key] = ".html";
-	++key;
-	_fileExtension[key] = ".php";
-	++key;
-	_fileExtension[key] = ".py";
+	return true;
 }
 
 void Server::executeCGI(char **env, std::string &filePath, std::string cmd) {

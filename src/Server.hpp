@@ -30,12 +30,10 @@
 
 class Server {
 private:
-	int											_socketFD;
 	std::string									_port;
-	int											_clientSocketFD;
 	struct sockaddr_in							_clientAddr;
 	std::string									_text;
-	struct pollfd 								_fds[201];
+	std::vector<int>							_listenSockets;
 	std::map<std::string, std::string>			_htmlFile;
 	typedef std::vector<std::string>			allFiles;
 	std::map<std::string, allFiles>				_serverPath;
@@ -49,11 +47,12 @@ public:
 	Server(char** env);
 	~Server();
 	void serverSetup();
+	bool setNonBlocking(int sockfd);
+	int createListenSocket(std::string &portInfo);
 	void getAllFiles();
 	void setEnv(std::istringstream &bufferString);
-	void fileExtensionInit();
 	void getFile(std::string &filePath, struct stat fileStat);
-	void sendHTTPResponse(std::string &method, char** env);
+	bool sendHTTPResponse(std::string &method, int clientfd, char** env);
 	void executeCGI(char** env, std::string &filePath, std::string cmd);
 	void iteratorClean();
 
