@@ -88,8 +88,10 @@ Server::Server(char** env) {
                 	--i; // Adjust index after removal
                 	continue;
 				}
-				std::cout << "buffer:\n" << buffer << std::endl;
-				std::istringstream bufferString(buffer);
+				
+                //std::cout << "buffer:\n" << buffer << std::endl;
+				
+                std::istringstream bufferString(buffer);
 				setEnv(bufferString);
 				//printEnv();
 				std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
@@ -121,7 +123,7 @@ Server::~Server() {}
 void Server::serverSetup() {
 	memset(&_clientAddr, 0 , sizeof(_clientAddr));
 	getAllFiles();
-	//printPathFile();
+	printPathFile();
 }
 
 bool Server::setNonBlocking(int sockfd) {
