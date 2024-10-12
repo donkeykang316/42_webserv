@@ -21,5 +21,18 @@
 #include <sys/poll.h>
 #include <iomanip>
 
-int createListenSocket(std::string &portInfo);
-void executeCGI(std::string _text, std::string &filePath, std::string cmd);
+class cgi {
+private:
+	std::map<std::string, std::string>	_env;
+	std::string							_text;
+
+	std::map<std::string, std::string>	_headers;
+
+public:
+	void envInit();
+	int createListenSocket(std::string &portInfo);
+	void executeCGI(std::string _text, std::string &filePath, std::string cmd);
+	void resetHeaders();
+
+	void output();
+};
