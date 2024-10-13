@@ -31,7 +31,7 @@ private:
 public:
 	void envInit();
 	int createListenSocket(std::string &portInfo);
-	void executeCGI(std::string _text, std::string &filePath, std::string cmd);
+	void executeCGI(std::string &filePath, std::string &cmd);
 	void resetHeaders();
 
 	void output();

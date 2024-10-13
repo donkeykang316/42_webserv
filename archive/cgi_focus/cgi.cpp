@@ -1,34 +1,52 @@
 #include "cgi.hpp"
 
-/*void cgi::envInit() {
-    std::map<std::string, std::string>	headers = request.getHeaders();
-	if (_headers.find("Auth-Scheme") != _headers.end() && _headers["Auth-Scheme"] != "")
-		_env["AUTH_TYPE"] = _headers["Authorization"];
+void cgi::envInit() {
+    _env["GATEWAY_INTERFACE"] = "CGI/1.1";
+    _env["SERVER_PROTOCOL"] = "HTTP/1.1";
+    _env["REQUEST_METHOD"] = "GET";
+    _env["SCRIPT_NAME"] = "/cgi-bin/test.cgi";
+    _env["QUERY_STRING"] = "";
+    _env["CONTENT_TYPE"] = "";
+    _env["CONTENT_LENGTH"] = "";
+    _env["SERVER_SOFTWARE"] = "MyServer/1.0";
+    _env["SERVER_NAME"] = "localhost";
+    _env["SERVER_PORT"] = "80";
+    _env["REMOTE_ADDR"] = "127.0.0.1";
+    _env["REMOTE_HOST"] = "localhost";
+    _env["AUTH_TYPE"] = "";
+    _env["REMOTE_USER"] = "";
+    _env["REMOTE_IDENT"] = "";
 
-	_env["REDIRECT_STATUS"] = "200"; //Security needed to execute php-cgi
-	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	//_env["SCRIPT_NAME"] = config.getPath();
-	//_env["SCRIPT_FILENAME"] = config.getPath();
-	_env["REQUEST_METHOD"] = request.getMethod();
-	_env["CONTENT_LENGTH"] = _text.length();
-	_env["CONTENT_TYPE"] = _headers["Content-Type"];
-	_env["PATH_INFO"] = request.getPath(); //might need some change, using config path/contentLocation
-	_env["PATH_TRANSLATED"] = request.getPath(); //might need some change, using config path/contentLocation
-	_env["QUERY_STRING"] = request.getQuery();
-	//_env["REMOTEaddr"] = to_string(config.getHostPort().host);
-	_env["REMOTE_IDENT"] = _headers["Authorization"];
-	_env["REMOTE_USER"] = _headers["Authorization"];
-	_env["REQUEST_URI"] = request.getPath() + request.getQuery();
-	if (_headers.find("Hostname") != _headers.end())
-		_env["SERVER_NAME"] = _headers["Hostname"];
-	else
-		_env["SERVER_NAME"] = _env["REMOTEaddr"];
-	//_env["SERVER_PORT"] = to_string(config.getHostPort().port);
-	_env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	_env["SERVER_SOFTWARE"] = "Weebserv/1.0";
+    _env["HTTP_USER_AGENT"] = "Mozilla/5.0";
+    _env["HTTP_ACCEPT"] = "text/html";
+}
 
-	_env.insert(config.getCgiParam().begin(), config.getCgiParam().end());
-}*/
+void cgi::resetHeaders()
+{
+	_headers.clear();
+
+	_headers["Accept-Charsets"] = "";
+	_headers["Accept-Language"] = "";
+	_headers["Allow"] = "";
+	_headers["Auth-Scheme"] = "";
+	_headers["Authorization"] = "";
+	_headers["Content-Language"] = "";
+	_headers["Content-Length"] = "";
+	_headers["Content-Location"] = "";
+	_headers["Content-Type"] = "";
+	_headers["Date"] = "";
+	_headers["Host"] = "";
+	_headers["Last-Modified"] = "";
+	_headers["Location"] = "";
+	_headers["Referer"] = "";
+	_headers["Retry-After"] = "";
+	_headers["Server"] = "";
+	_headers["Transfer-Encoding"] = "";
+	_headers["User-Agent"] = "";
+	_headers["Www-Authenticate"] = "";
+	_headers["Connection"] = "Keep-Alive";
+}
+
 
 int cgi::createListenSocket(std::string &portInfo) {
     int sockfd = -1; // Initialize to -1 to indicate invalid socket
@@ -96,11 +114,13 @@ int cgi::createListenSocket(std::string &portInfo) {
     std::cout << "Server is listening on port " << port << std::endl;
     return sockfd; // Return the listening socket file descriptor
 }
-/*
-void cgi::executeCGI(std::string _text, std::string &filePath, std::string cmd) {
+
+void cgi::executeCGI(std::string &filePath, std::string &cmd) {
 	int inPipe[2];
     int outPipe[2];
 
+	//resetHeaders();
+	envInit();
 	if (pipe(inPipe) == -1 || pipe(outPipe) == -1) {
 		std::cerr << "Failed to create pipes.\n";
 		return;
@@ -125,8 +145,17 @@ void cgi::executeCGI(std::string _text, std::string &filePath, std::string cmd) 
     	char *const argv[] = { const_cast<char*>(cmd.c_str()), const_cast<char*>(filePath.c_str()), NULL };
 		std::cerr << "line: " << filePath << std::endl;
 
+		std::vector<std::string> env_strings;
+		std::vector<char*> envp;
+        for (std::map<std::string, std::string>::iterator it = _env.begin(); it != _env.end(); ++it) {
+        	std::string env_entry = it->first + "=" + it->second;
+        	env_strings.push_back(env_entry);
+        	envp.push_back(const_cast<char*>(env_strings.back().c_str()));
+		}
+	    envp.push_back(NULL);
+
 		// Execute the CGI script
-		if (execve(cmdPath.c_str(), argv, env) == -1) {
+		if (execve(cmdPath.c_str(), argv, &envp[0]) == -1) {
 			std::cerr << "Execution failed!\n";
 			std::exit(1);
 		}
@@ -154,42 +183,17 @@ void cgi::executeCGI(std::string _text, std::string &filePath, std::string cmd) 
     }
 	close(outPipe[0]);
     
-}*/
-
-void cgi::resetHeaders()
-{
-	_headers.clear();
-
-	_headers["Accept-Charsets"] = "";
-	_headers["Accept-Language"] = "";
-	_headers["Allow"] = "";
-	_headers["Auth-Scheme"] = "";
-	_headers["Authorization"] = "";
-	_headers["Content-Language"] = "";
-	_headers["Content-Length"] = "";
-	_headers["Content-Location"] = "";
-	_headers["Content-Type"] = "";
-	_headers["Date"] = "";
-	_headers["Host"] = "";
-	_headers["Last-Modified"] = "";
-	_headers["Location"] = "";
-	_headers["Referer"] = "";
-	_headers["Retry-After"] = "";
-	_headers["Server"] = "";
-	_headers["Transfer-Encoding"] = "";
-	_headers["User-Agent"] = "";
-	_headers["Www-Authenticate"] = "";
-	_headers["Connection"] = "Keep-Alive";
 }
 
-
 void cgi::output() {
-    	int	_clientSocketFD;
+    int	_clientSocketFD;
 	int	socketFD;
 	struct sockaddr_in	_clientAddr;
 	std::string portInfo = "8888";
 	
 	socketFD = createListenSocket(portInfo);
+
+
 	while (1) {
 		socklen_t clientAddrLen = sizeof(_clientAddr);
 		_clientSocketFD = accept(socketFD, (struct sockaddr *)&_clientAddr, &clientAddrLen);
@@ -205,9 +209,18 @@ void cgi::output() {
 		std::cout << buffer << std::endl;
 
 		// Prepare an HTTP response
-		//executeCGI();
-		_text = "Here is the server of team easy win (simplefied)";
-		std::string httpResponse = "HTTP/1.1\n\n" + _text;
+		std::string filePath = "../../www/cgi_bin/hello.py";
+		std::string cmd = "python3";
+		executeCGI(filePath, cmd);
+		size_t cLen = _text.size();
+		std::stringstream contentLen;
+    	contentLen << cLen;
+		std::string cL = contentLen.str();
+		std::string httpResponse = _env["SERVER_PROTOCOL"] + " 200 OK\r\n"
+			+ "Content-Type: " + _env["HTTP_ACCEPT"] + "\r\n"
+			+ "Content-Length: " + cL + "\r\n"
+			+ "Connection: " + _headers["Connection"] + "\r\n"
+			+ "\r\n" + _text;
 
 		// Send the HTTP response to the client
 		if (send(_clientSocketFD, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
