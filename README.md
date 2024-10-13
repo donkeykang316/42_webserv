@@ -93,7 +93,8 @@ close(_socketFD);
 - `curl ifconfig.me`
 
 
-### CGI, select() poll(), essentiel config requirement
+### CGI
+- [CGI Environment Variables](https://www6.uniovi.es/~antonio/ncsa_httpd/cgi/env.html)
 
 ### siege test (multi client requests test)
 - `siege -r 100 -c 2 http://127.00.00:5000/`
