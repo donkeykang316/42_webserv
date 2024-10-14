@@ -16,15 +16,13 @@ private:
 	std::string status_line;
 	std::string response_headers;
 	std::string content;
-	void	_set_content();
+	void	_set_content(std::string filePath);
 public:
-	HTTPResponse(HTTPRequest &request);
+	HTTPResponse(HTTPRequest &request, std::string filePath);
 	~HTTPResponse();
 	std::string response;
 	void	get();
+	std::string getDefaultErrorPageContent(enum status_code_value statusCode);
 };
-
-
-
 
 #endif
