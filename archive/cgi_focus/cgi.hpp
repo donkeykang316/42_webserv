@@ -23,7 +23,7 @@
 
 class cgi {
 private:
-	std::map<std::string, std::string>	_env;
+	std::vector<std::string>			_env;
 	std::string							_text;
 
 	std::map<std::string, std::string>	_headers;

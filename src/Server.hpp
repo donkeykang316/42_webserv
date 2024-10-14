@@ -43,7 +43,6 @@ private:
 	
 public:
 	Server();
-	Server(char** env);
 	~Server();
 	void serverSetup();
 	bool setNonBlocking(int sockfd);
@@ -51,9 +50,9 @@ public:
 	void getAllFiles();
 	void setEnv(std::istringstream &bufferString);
 	void getFile(std::string &filePath, struct stat fileStat);
-	bool sendHTTPResponse(std::string &method, int clientfd, char** env);
-	bool postResponse(std::string &method, int clientfd, char** env);
-	void executeCGI(char** env, std::string &filePath, std::string cmd);
+	bool sendHTTPResponse(std::string &method, int clientfd);
+	bool postResponse(std::string &method, int clientfd);
+	void executeCGI(std::string &filePath, std::string cmd);
 	void iteratorClean();
 
 	void printEnv();

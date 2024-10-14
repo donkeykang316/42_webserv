@@ -1,24 +1,23 @@
 #include "cgi.hpp"
 
 void cgi::envInit() {
-    _env["GATEWAY_INTERFACE"] = "CGI/1.1";
-    _env["SERVER_PROTOCOL"] = "HTTP/1.1";
-    _env["REQUEST_METHOD"] = "GET";
-    _env["SCRIPT_NAME"] = "/cgi-bin/test.cgi";
-    _env["QUERY_STRING"] = "";
-    _env["CONTENT_TYPE"] = "";
-    _env["CONTENT_LENGTH"] = "";
-    _env["SERVER_SOFTWARE"] = "MyServer/1.0";
-    _env["SERVER_NAME"] = "localhost";
-    _env["SERVER_PORT"] = "80";
-    _env["REMOTE_ADDR"] = "127.0.0.1";
-    _env["REMOTE_HOST"] = "localhost";
-    _env["AUTH_TYPE"] = "";
-    _env["REMOTE_USER"] = "";
-    _env["REMOTE_IDENT"] = "";
-
-    _env["HTTP_USER_AGENT"] = "Mozilla/5.0";
-    _env["HTTP_ACCEPT"] = "text/html";
+	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+    _env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+    _env.push_back("REQUEST_METHOD=GET");
+    _env.push_back("SCRIPT_NAME=/cgi-bin/test.cgi");
+    _env.push_back("QUERY_STRING=");
+    _env.push_back("CONTENT_TYPE=");
+    _env.push_back("CONTENT_LENGTH=");
+    _env.push_back("SERVER_SOFTWARE=MyServer/1.0");
+    _env.push_back("SERVER_NAME=localhost");
+    _env.push_back("SERVER_PORT=80");
+    _env.push_back("REMOTE_ADDR=127.0.0.1");
+    _env.push_back("REMOTE_HOST=localhost");
+    _env.push_back("AUTH_TYPE=");
+    _env.push_back("REMOTE_USER=");
+    _env.push_back("REMOTE_IDENT=");
+    _env.push_back("HTTP_USER_AGENT=Mozilla/5.0");
+    _env.push_back("HTTP_ACCEPT=text/html");
 }
 
 void cgi::resetHeaders()
@@ -145,14 +144,11 @@ void cgi::executeCGI(std::string &filePath, std::string &cmd) {
     	char *const argv[] = { const_cast<char*>(cmd.c_str()), const_cast<char*>(filePath.c_str()), NULL };
 		std::cerr << "line: " << filePath << std::endl;
 
-		std::vector<std::string> env_strings;
 		std::vector<char*> envp;
-        for (std::map<std::string, std::string>::iterator it = _env.begin(); it != _env.end(); ++it) {
-        	std::string env_entry = it->first + "=" + it->second;
-        	env_strings.push_back(env_entry);
-        	envp.push_back(const_cast<char*>(env_strings.back().c_str()));
-		}
-	    envp.push_back(NULL);
+    	for (size_t i = 0; i < _env.size(); ++i) {
+        	envp.push_back(const_cast<char*>(_env[i].c_str()));
+    	}
+    	envp.push_back(NULL);
 
 		// Execute the CGI script
 		if (execve(cmdPath.c_str(), argv, &envp[0]) == -1) {
@@ -209,7 +205,7 @@ void cgi::output() {
 		std::cout << buffer << std::endl;
 
 		// Prepare an HTTP response
-		std::string filePath = "../../www/cgi_bin/hello.py";
+		std::string filePath = "www/to_upload.py";
 		std::string cmd = "python3";
 		executeCGI(filePath, cmd);
 		size_t cLen = _text.size();
@@ -227,6 +223,7 @@ void cgi::output() {
     		std::cerr << "Failed to send response to the client.\n";
 		}
 		close(_clientSocketFD);
+		_text.clear();
 	}
 	close(socketFD);
 }

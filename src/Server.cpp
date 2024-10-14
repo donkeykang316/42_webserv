@@ -1,10 +1,6 @@
 #include "Server.hpp"
 
 Server::Server() {
-	std::cout << "server default constructor\n";
-}
-
-Server::Server(char** env) {
 	serverSetup();
 
 	// will be replaced with config parser
@@ -89,14 +85,14 @@ Server::Server(char** env) {
                 	continue;
 				}
 				
-                //std::cout << "buffer:\n" << buffer << std::endl;
+                std::cout << buffer << std::endl;
 				
                 std::istringstream bufferString(buffer);
 				setEnv(bufferString);
 				//printEnv();
 				std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
 				if (it->second.first == GET) {
-					if (!sendHTTPResponse(it->second.second, clientfd, env)) {
+					if (!sendHTTPResponse(it->second.second, clientfd)) {
                     	close(clientfd);
                 		FD_CLR(clientfd, &master_set);
                     	clientSockets.erase(clientSockets.begin() + i);
@@ -104,7 +100,7 @@ Server::Server(char** env) {
                     	continue;
 					}
 				} else if (it->second.first == POST) {
-                    if (!postResponse(it->second.second, clientfd, env)) {
+                    if (!postResponse(it->second.second, clientfd)) {
                     	close(clientfd);
                 		FD_CLR(clientfd, &master_set);
                     	clientSockets.erase(clientSockets.begin() + i);
@@ -416,9 +412,8 @@ void Server::getFile(std::string &filePath, struct stat fileStat) {
 	}
 }
 
-bool Server::sendHTTPResponse(std::string &method, int clientfd, char **env) {
+bool Server::sendHTTPResponse(std::string &method, int clientfd) {
 	std::string fileAccess = method;
-	(void)env;
 
 	/*struct stat fileStat;
 	if (stat(("server/" + fileAccess + _fileExtension[0]).c_str(), &fileStat) != -1) {
@@ -464,7 +459,7 @@ bool Server::sendHTTPResponse(std::string &method, int clientfd, char **env) {
 	return true;
 }
 
-bool Server::postResponse(std::string &method, int clientfd, char** env) {
+bool Server::postResponse(std::string &method, int clientfd) {
     (void)clientfd;
     std::string fileAccess = method;
 	/*struct stat fileStat;
@@ -488,7 +483,7 @@ bool Server::postResponse(std::string &method, int clientfd, char** env) {
 			if (std::strncmp(fileAccess.c_str(), it->second[i].c_str(), fileAccess.length()) == 0
 				&& stat((it->first + it->second[i]).c_str(), &fileStat) != -1) {
 				std::string filePath = it->first + it->second[i];
-				executeCGI(env, filePath, "python3");
+				executeCGI(filePath, "python3");
 			}
         }
     }
@@ -499,12 +494,12 @@ bool Server::postResponse(std::string &method, int clientfd, char** env) {
 	std::string cL = contentLen.str();
 	std::cout << cL << std::endl;
 	// Prepare an HTTP response
-	std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
-		+ cL + "\r\n"
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: "
+        + cL + "\r\n"
 		+ "\r\n"
 		+ _text;
 
-    std::cout << "stored in text: " << _text << std::endl;
+    //std::cout << "stored in text:\n" << httpResponse << std::endl;
 
 	if (send(clientfd, httpResponse.c_str(), httpResponse.size(), 0) < 0) {
     	std::cerr << "Failed to send response to the client.\n";
@@ -514,7 +509,7 @@ bool Server::postResponse(std::string &method, int clientfd, char** env) {
 }
 
 
-void Server::executeCGI(char **env, std::string &filePath, std::string cmd) {
+void Server::executeCGI(std::string &filePath, std::string cmd) {
 	int inPipe[2];
     int outPipe[2];
 
@@ -542,8 +537,32 @@ void Server::executeCGI(char **env, std::string &filePath, std::string cmd) {
     	char *const argv[] = { const_cast<char*>(cmd.c_str()), const_cast<char*>(filePath.c_str()), NULL };
 		std::cerr << "line: " << filePath << std::endl;
 
+        std::vector<std::string>    _env;
+        _env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+        _env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+        _env.push_back("REQUEST_METHOD=GET");
+        _env.push_back("SCRIPT_NAME=/cgi-bin/test.cgi");
+        _env.push_back("QUERY_STRING=");
+        _env.push_back("CONTENT_TYPE=");
+        _env.push_back("CONTENT_LENGTH=");
+        _env.push_back("SERVER_SOFTWARE=MyServer/1.0");
+        _env.push_back("SERVER_NAME=localhost");
+        _env.push_back("SERVER_PORT=80");
+        _env.push_back("REMOTE_ADDR=127.0.0.1");
+        _env.push_back("REMOTE_HOST=localhost");
+        _env.push_back("AUTH_TYPE=");
+        _env.push_back("REMOTE_USER=");
+        _env.push_back("REMOTE_IDENT=");
+        _env.push_back("HTTP_USER_AGENT=Mozilla/5.0");
+        _env.push_back("HTTP_ACCEPT=text/html");
+        std::vector<char*> envp;
+    	for (size_t i = 0; i < _env.size(); ++i) {
+        	envp.push_back(const_cast<char*>(_env[i].c_str()));
+    	}
+    	envp.push_back(NULL);
+
 		// Execute the CGI script
-		if (execve(cmdPath.c_str(), argv, env) == -1) {
+		if (execve(cmdPath.c_str(), argv, &envp[0]) == -1) {
 			std::cerr << "Execution failed!\n";
 			std::exit(1);
 		}

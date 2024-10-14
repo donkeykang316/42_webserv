@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .upload-container {
+            max-width: 400px;
+            margin: auto;
+        }
+        .upload-container input[type="file"] {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .upload-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .status {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="upload-container">
+    <h2>Upload a File</h2>
+    <input type="file" id="fileInput" />
+    <button id="uploadButton">Upload</button>
+    <div class="status" id="status"></div>
+</div>
+
+<script src="to_upload"></script>
+</body>
+</html>
