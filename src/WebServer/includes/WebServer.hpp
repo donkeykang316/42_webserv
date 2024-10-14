@@ -22,7 +22,7 @@ private:
 	std::map<std::string, int> socket_fds;
 	std::map<std::string, int>	newSocketFds;
 	struct pollfd fds[200];
-	char	_buffer[30000];
+	// char	_buffer[30000];
 	struct addrinfo *res;
 
 	ServerConfig &serverConfig;
