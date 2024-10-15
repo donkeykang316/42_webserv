@@ -96,6 +96,30 @@ close(_socketFD);
 ### CGI
 - [CGI Environment Variables](https://www6.uniovi.es/~antonio/ncsa_httpd/cgi/env.html)
 
+### Chunked text body handeling
+- Key Characteristics:
+	- No `Content-Length` Header Required: Instead of specifying the total size of the message body upfront, the data is sent in discrete chunks
+	- Dynamic Data Transmission: Ideal for scenarios where data is generated or fetched on-the-fly, such as streaming media or real-time data feeds
+	- Termination: The end of the message is signaled by a zero-length chunk (0\r\n\r\n)
+	- EOF as Termination: They determine the end of the input data by encountering an EOF (End of File) signal. This indicates that all the data has been received
+	- No Knowledge of Chunked Encoding: CGI scripts are generally agnostic of how the data was transmitted (chunked or otherwise). They expect a clean data stream without any chunked transfer encoding markers
+- exmaple of chunked request:
+```javascript
+POST /upload HTTP/1.1
+Host: example.com
+Transfer-Encoding: chunked
+Content-Type: application/octet-stream
+
+4\r\n
+Wiki\r\n
+5\r\n
+pedia\r\n
+E\r\n
+ in\r\n\r\nchunks.\r\n
+0\r\n
+\r\n
+```
+
 ### siege test (multi client requests test)
 - `siege -r 100 -c 2 http://127.00.00:5000/`
 - the options `-c` and `-t` are used to specify the number of concurrent users and the duration of the test
