@@ -2,11 +2,10 @@
 # define HTTPREQUEST_H
 
 #include "HTTP.h"
+#include "../../Configuration/includes/Dictionary.hpp"
 #include <vector>
-// struct ServerConfig
-// {
-// 	std::map<std::string, std::vector<std::string>> routs;
-// };
+
+
 class HTTPRequest
 {
 private:
@@ -15,12 +14,17 @@ private:
     std::string method;
     std::string path;
     std::string protocol_v;
+    struct LocationStr *location;
+    std::string pathToFile;
+
 public:
+    Dictionary &dictionary;
     std::map<std::string, std::string> headers;
-    HTTPRequest(char const * buffer);
+    HTTPRequest(char const * buffer, Dictionary &dict);
     ~HTTPRequest();
-    static const std::set<std::string> METHODS;
+    // static const std::set<std::string> METHODS;
     enum status_code_value get_status_code();
+    void setStatusCode(enum status_code_value);
     std::string get_method();
     std::string get_path();
     std::string get_protocol_v();

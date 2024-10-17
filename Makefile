@@ -1,26 +1,47 @@
-NAME = webserver
-CFLAGS = -Wall -Wextra -Werror
-RM = rm -rf
-FILES	=	main WebServer HTTPRequest HTTPResponse
-SRC		= $(addsuffix .cpp, $(FILES))
-OBJ		= $(addsuffix .o, $(FILES))
+TOPDIR	:= $(shell pwd)/
+SRCDIR	:= $(TOPDIR)src/
+OBJDIR	:= $(TOPDIR)obj/
+BINDIR	:= $(TOPDIR)
+NAME	:= webserver
+EXE		:= $(NAME)
+OBJSUBDIR	:= $(TOPDIR)obj/Configuration
 
-%.o : %.c
-		c++ -std=c++98 -c $(CFLAGS) $< -o $@
+SFILES	:= cpp
+OFILES	:= o
+CC		:= c++
+CFLAGS	:= -c -Wall -Wextra -Werror -std=c++98
 
-all :	$(NAME)
+SOURCES := $(shell find $(SRCDIR) -name "*.$(SFILES)")
+OBJECTSSUBFOLDERS := $(addprefix $(OBJDIR)/, $(shell cd src && printf -- '%s\n' */ && cd ../))
+OBJECTS := $(patsubst $(SRCDIR)%.$(SFILES), $(OBJDIR)%.$(OFILES), $(SOURCES))
 
-$(NAME): $(OBJ)
-	c++ -o $(NAME) $(OBJ)
+ALLFILES := $(SOURCES)
 
-$(OBJ) : $(SRC)
-	c++ -std=c++98 $(CFLAGS) -c $(SRC)
+.PHONY: all clean
+
+all:    $(EXE)
+
+$(OBJECTS): | $(OBJDIR) $(OBJECTSSUBFOLDERS)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+$(OBJECTSSUBFOLDERS):
+	mkdir -p $(OBJECTSSUBFOLDERS)
+
+$(EXE): $(OBJECTS)
+
+		@$(CC) $^ -o $@
+
+$(OBJDIR)%$(OFILES):    $(SRCDIR)%$(SFILES)
+		@$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	$(RM) $(OBJ)
+	@rm -f $(OBJECTS) $(EXE)
+	@rm -rf $(OBJECTSSUBFOLDERS)
+	@rm -rf $(OBJDIR)
 
 fclean:	clean
-	$(RM) $(NAME)
+	$(RM) $(EXE)
 
 re:	fclean all
 
