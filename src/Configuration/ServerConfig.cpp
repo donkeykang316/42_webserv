@@ -10,6 +10,7 @@ ServerConfig & ServerConfig::operator=(const ServerConfig &rhs)
 {
 	(void) rhs;
 	this->resetToDefault();
+	std::cout << "SERVERCONFIG OPERATOR =" << std::endl;
 	return (*this);
 }
 
@@ -20,7 +21,7 @@ ServerConfig::~ServerConfig()
 void ServerConfig::resetToDefault()
 {
 	this->listen.clear();
-	this->serverName.clear();
+	this->serverNameAliases.clear();
 	this->clientMaxBodySize = -1;
 	this->index.clear();
 	this->locations.clear();
@@ -40,12 +41,18 @@ void ServerConfig::setListen(std::vector<std::string> vector)
 
 void ServerConfig::setServerName(std::vector<std::string> vector)
 {
-	if (!isValidOneValue(vector))
+	// if (!isValidOneValue(vector))
+	// {
+		// serverNameAliases.clear();
+		// return;
+	// }
+	if (vector.size() < 2)
 	{
-		serverName = "";
-		return;
+		std::cout << "Instruction \"" << vector[0] << "\" must have at least one value" << std::endl;
+		return ;
 	}
-	serverName = vector[1];
+	for (size_t i = 1; i < vector.size(); i++)
+		serverNameAliases.insert(vector[i]);
 }
 
 void ServerConfig::setClientMaxBodySize(std::vector<std::string> vector)
@@ -90,7 +97,7 @@ void ServerConfig::fillAttributes(std::vector<std::string> confLineVector, Dicti
 
 bool ServerConfig::isValid()
 {
-	if (listen.empty() || serverName.empty())
+	if (listen.empty() || serverNameAliases.empty())
 		return (false);
 	return (true);
 }
@@ -134,4 +141,12 @@ LocationConfig *ServerConfig::getLocation(std::string path)
 	return (currLocation);
 }
 
-
+// std::set<std::string> ServerConfig
+std::set<std::string> ServerConfig::getServerNameAliases()
+{
+	return (this->serverNameAliases);
+}
+std::set<std::string> ServerConfig::getListenPorts()
+{
+	return (this->listen);
+}
