@@ -1,7 +1,7 @@
 NAME = webserver
 CFLAGS = -Wall -Wextra -Werror
 RM = rm -rf
-FILES	=	main WebServer
+FILES	=	main WebServer HTTPRequest HTTPResponse
 SRC		= $(addsuffix .cpp, $(FILES))
 OBJ		= $(addsuffix .o, $(FILES))
 

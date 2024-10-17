@@ -9,6 +9,9 @@
 # include <netdb.h>
 #include <sys/poll.h>
 
+# include "HTTPRequest.hpp"
+# include "HTTPResponse.hpp"
+
 #define BACKLOG 10     // how many pending connections queue will hold
 
 struct Config
@@ -31,6 +34,7 @@ private:
 	void	_accept();
 	void	_handle();
 	void	_respond();
+	HTTPRequest *curr_request;
 public:
 	WebServer(int argc, char* argv[]);
 	~WebServer();
