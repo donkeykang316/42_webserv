@@ -52,6 +52,9 @@
 		"optional": "cpp",
 		"ranges": "cpp",
 		"span": "cpp",
-		"cinttypes": "cpp"
+		"cinttypes": "cpp",
+		"csignal": "cpp",
+		"ctime": "cpp",
+		"iomanip": "cpp"
 	}
 }

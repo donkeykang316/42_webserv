@@ -365,10 +365,24 @@ void Configuration::start()
 				std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
 
 				std::string responseFile = currServer->getResponseFilePath(request);
-				HTTPResponse response(*request, responseFile);
+				//HTTPResponse response(*request, responseFile);
 				delete request;
-				std::cout << "RESPONSE DATA: " << response.response << std::endl;
-				send(clientfd ,response.response.c_str(), response.response.size(),0);
+
+				std::string cmd = "python3";
+				_cgi.executeCGI(responseFile, cmd);
+
+				std::string tmpReponse = _cgi.getText();
+				size_t cLen = tmpReponse.size();
+				std::stringstream contentLen;
+    			contentLen << cLen;
+				std::string cL = contentLen.str();
+				std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
+					+ cL + "\r\n"
+					+ "\r\n"
+					+ tmpReponse;
+				
+				std::cout << "RESPONSE DATA: " << tmpReponse << std::endl;
+				send(clientfd, httpResponse.c_str(), httpResponse.size(),0);
 				close(clientfd);
 				FD_CLR(clientfd, &master_set);
 				clientSockets.erase(clientSockets.begin() + i);
