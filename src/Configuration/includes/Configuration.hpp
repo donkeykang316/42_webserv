@@ -13,7 +13,7 @@
 # include "LocationConfig.hpp"
 # include "ServerConfig.hpp"
 # include "../../WebServer/includes/ServerSocket.hpp"
-# include "../../WebServer/includes/CGI.hpp"
+# include "../../HTTP/includes/CGI.hpp"
 
 class Configuration
 {
@@ -23,7 +23,6 @@ private:
 	std::map<std::string, ServerSocket*> _serverSockets;
 	void _initServerSockets();
 	bool setNonBlocking(int sockfd);
-	cgi	_cgi;
 public:
 	Dictionary dictionary;
 	int blockLayer;

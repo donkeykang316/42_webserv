@@ -1,0 +1,325 @@
+Attribute of server "index" not supported.
+TEST INNER SERVERCONF DATA
+localhost
+Binding successful on port 5000
+Server is listening on port 5000
+SOCKET CREATED 3
+PORT TO SOCKET 5000 to 3
+Binding successful on port 5050
+Server is listening on port 5050
+SOCKET CREATED 4
+PORT TO SOCKET 5050 to 4
+TEST INNER SERVERCONF DATA
+localhost2
+PORT TO SOCKET 5000 to NONE
+PORT TO SOCKET 5050 to NONE
+TEST INNER SERVERCONF DATA
+localhost
+Binding successful on port 8080
+Server is listening on port 8080
+SOCKET CREATED 5
+PORT TO SOCKET 8080 to 5
+SERVER number 0
+--- listen: 5000 5050 
+--- index: 
+--- serverName: localhost 
+--- clientMaxBodySize: 100
+--- ERROR PAGES: 
+------ 500:/error_pages 50x.html 
+------ 502:/error_pages 50x.html 
+------ 503:/error_pages 50x.html 
+------ 504:/error_pages 50x.html 
+
+--- LOCATION number 0
+------ is CGI: 0
+------ uri: /
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET POST ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 1
+------ is CGI: 0
+------ uri: /subpage
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET ]
+------ ERROR PAGES: 
+--------- 404:/error_pages 404.html 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 2
+------ is CGI: 0
+------ uri: /subpage/sub
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 3
+------ is CGI: 0
+------ uri: /cgi-bin
+------ modifier: 
+------ index: 
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ POST ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+SERVER number 1
+--- listen: 5000 5050 
+--- index: 
+--- serverName: localhost2 
+--- clientMaxBodySize: 100
+--- ERROR PAGES: 
+------ 500:/error_pages 50x.html 
+------ 502:/error_pages 50x.html 
+------ 503:/error_pages 50x.html 
+------ 504:/error_pages 50x.html 
+
+--- LOCATION number 0
+------ is CGI: 0
+------ uri: /
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET POST ]
+------ ERROR PAGES: 
+--------- 404:/error_pages 404.html 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 1
+------ is CGI: 0
+------ uri: /subpage
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET ]
+------ ERROR PAGES: 
+--------- 404:/error_pages 404.html 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 2
+------ is CGI: 0
+------ uri: /subpage/sub
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 3
+------ is CGI: 1
+------ uri: \.php$
+------ modifier: ~
+------ index: 
+------ cgiPass: unix:/run/php/php7.4-fpm.sock
+------ cgiIndex: index.php
+------ cgiInclude: fastcgi_params
+------ CGIParams: 
+--------- PATH_INFO:$fastcgi_script_name
+--------- SCRIPT_FILENAME:$document_root$fastcgi_script_name
+------ ALLOWED METHODS: 
+[ ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+SERVER number 2
+--- listen: 8080 
+--- index: 
+--- serverName: localhost tklimova 
+--- clientMaxBodySize: 200
+--- ERROR PAGES: 
+------ 500:/error_pages 50x.html 
+------ 502:/error_pages 50x.html 
+------ 503:/error_pages 50x.html 
+------ 504:/error_pages 50x.html 
+
+--- LOCATION number 0
+------ is CGI: 0
+------ uri: /subpage
+------ modifier: 
+------ index: index.html
+------ cgiPass: 
+------ cgiIndex: 
+------ cgiInclude: 
+------ CGIParams: 
+------ ALLOWED METHODS: 
+[ GET ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+
+--- LOCATION number 1
+------ is CGI: 1
+------ uri: \.php$
+------ modifier: ~
+------ index: 
+------ cgiPass: unix:/run/php/php7.4-fpm.sock
+------ cgiIndex: index.php
+------ cgiInclude: fastcgi_params
+------ CGIParams: 
+--------- PATH_INFO:$fastcgi_script_name
+--------- SCRIPT_FILENAME:$document_root$fastcgi_script_name
+------ ALLOWED METHODS: 
+[ ]
+------ ERROR PAGES: 
+--------- 500:/error_pages 50x.html 
+--------- 502:/error_pages 50x.html 
+--------- 503:/error_pages 50x.html 
+--------- 504:/error_pages 50x.html 
+Start 3
+listenSocketIt->second->getFd() 5000
+listenSocketIt->second->getFd() 3
+listenSocketIt->second->getFd() 5050
+listenSocketIt->second->getFd() 4
+listenSocketIt->second->getFd() 8080
+listenSocketIt->second->getFd() 5
+GET /upload/index.html HTTP/1.1
+Host: 127.0.0.1:5000
+Connection: keep-alive
+Cache-Control: max-age=0
+sec-ch-ua: "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+ÃC
+Method is GET
+Rest is |ÃC|
+ HOST 127.0.0.1:5000
+ port 5000 host 127.0.0.1
+SERVER 0x1045720
+ currServer localhost
+/upload/index.html
+/upload
+reposefile GET: 0x43c388./www/upload/index.html
+1 RESPONSE 
+2 RESPONSE 
+3 RESPONSE 
+fileExtention html filePath 0 getContentTypeFromDictionary text/html text/html
+4 RESPONSE 
+
+
+5 RESPONSE 
+6 RESPONSE 
+RESPONSE DATA: HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: text/html
+Content-Length: 266
+
+<html>
+   <body>
+      <form enctype = "multipart/form-data" action = "../../cgi-bin/save_file.py" method = "post">
+      <p>File: <input type = "file" name = "filename" /></p>
+      <p><input type = "submit" value = "Upload" /></p>
+      </form>
+   </body>
+</html>
+
+POST /cgi-bin/save_file.py HTTP/1.1
+Host: 127.0.0.1:5000
+Connection: keep-alive
+Content-Length: 192
+Cache-Control: max-age=0
+sec-ch-ua: "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Upgrade-Insecure-Requests: 1
+Origin: http://127.0.0.1:5000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarywtcqPtn4Ab5qIY4r
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1:5000/upload/index.html
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+------WebKitFormBoundarywtcqPtn4Ab5qIY4r
+Content-Disposition: form-data; name="filename"
+Method is POST
+Rest is |------WebKitFormBoundarywtcqPtn4Ab5qIY4r
+Content-Disposition: form-data; name="filename"|
+ HOST 127.0.0.1:5000
+ port 5000 host 127.0.0.1
+SERVER 0x1045720
+ currServer localhost
+CGI PART 
+
+reposefile: /cgi-bin/save_file.py
+1 RESPONSE 
+2 RESPONSE 
+3 RESPONSE 
+fileExtention py filePath 0 getContentTypeFromDictionary application/octet-stream application/octet-stream
+4 RESPONSE 
+5 RESPONSE 
+6 RESPONSE 

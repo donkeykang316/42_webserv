@@ -115,6 +115,7 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 	std::string filePath;
 
 	std::string requestUri = request->get_path();
+
 	// get the location that matches uri of the request
 	LocationConfig *location = serverConfig->getLocation(requestUri);
 	// if there no location or method is not allowed set error status code
@@ -147,6 +148,7 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 		}
 		std::string relativePath = ".";
 		relativePath.append(filePath);
+
 		int fileFd = open(relativePath.c_str(), O_RDONLY);
 		if (fileFd < 0)
 		{
@@ -163,6 +165,7 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 			filePath.append(getResponseErrorFilePath(location, request->get_status_code()));
 		}
 	}
+
 	return (filePath);
 }
 

@@ -364,25 +364,35 @@ void Configuration::start()
 				std::cout << "SERVER " << currServer->getServerNameAliases().begin()._M_node << std::endl;
 				std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
 
-				std::string responseFile = currServer->getResponseFilePath(request);
-				//HTTPResponse response(*request, responseFile);
-				delete request;
-
-				std::string cmd = "python3";
-				_cgi.executeCGI(responseFile, cmd);
-
-				std::string tmpReponse = _cgi.getText();
-				size_t cLen = tmpReponse.size();
-				std::stringstream contentLen;
-    			contentLen << cLen;
-				std::string cL = contentLen.str();
-				std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
+				if (request->get_method() == "GET") {
+					std::string responseFile = currServer->getResponseFilePath(request);
+					std::cout << "reposefile GET: " << std::cout << responseFile << std::endl;
+					HTTPResponse response(*request, responseFile);
+					delete request;
+					std::cout << "RESPONSE DATA: " << response.response << std::endl;
+					send(clientfd ,response.response.c_str(), response.response.size(),0);
+				}
+				else {
+					std::cout << "CGI PART \n\n";
+					std::string cmd = "python3";
+					std::string	postPath = request->get_path();
+					std::cout << "reposefile: " << postPath << std::endl;
+					cgi cgi(*request, postPath);
+					/*_cgi.executeCGI(responseFile, cmd);
+					delete request;
+					std::string tmpReponse = _cgi.getText();
+					size_t cLen = tmpReponse.size();
+					std::stringstream contentLen;
+    				contentLen << cLen;
+					std::string cL = contentLen.str();
+					std::string httpResponse = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: " 
 					+ cL + "\r\n"
 					+ "\r\n"
 					+ tmpReponse;
+					std::cout << "RESPONSE DATA: " << tmpReponse << std::endl;*/
+					send(clientfd, cgi._cgiResponse.c_str(), cgi._cgiResponse.size(),0);
+				}
 				
-				std::cout << "RESPONSE DATA: " << tmpReponse << std::endl;
-				send(clientfd, httpResponse.c_str(), httpResponse.size(),0);
 				close(clientfd);
 				FD_CLR(clientfd, &master_set);
 				clientSockets.erase(clientSockets.begin() + i);

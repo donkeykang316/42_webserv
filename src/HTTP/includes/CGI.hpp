@@ -21,18 +21,30 @@
 #include <csignal>
 #include <sys/poll.h>
 #include <iomanip>
+#include "HTTPRequest.hpp"
 
 class cgi {
 private:
+	enum status_code_value status_code;
+	HTTPRequest &_request;
+	std::string status_line;
+	std::string response_headers;
+	std::string content;
+	void	_set_content(std::string filePath);
+
+
+
 	std::vector<std::string>			_env;
-	std::string							_text;
 
 	std::map<std::string, std::string>	_headers;
 
 public:
+	cgi(HTTPRequest &request, std::string filePath);
+	~cgi();
+	std::string	_cgiResponse;
+	std::string getDefaultErrorPageContent(enum status_code_value statusCode);
+	
 	void envInit();
-	int createListenSocket(std::string &portInfo);
 	void executeCGI(std::string &filePath, std::string &cmd);
 	void resetHeaders();
-	std::string getText();
 };
