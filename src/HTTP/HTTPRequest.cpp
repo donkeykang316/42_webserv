@@ -70,7 +70,14 @@ HTTPRequest::HTTPRequest(char const *buffer, Dictionary &dict): dictionary(dict)
             std::cout << " Wrong header's format: no info about host" << std::endl;
             return ;
     }
+
+    std::cerr << "\ncontent  type |" << headers["Content-Type"] << "|\n" << std::endl;
+
     // TODO:: parse body
+     _body = headers["Content-Type"];
+
+    std::cout << "_body |" << _body << "|" << std::endl;
+
     std::cout << "Rest is |" << buff  << "|" << std::endl;
 
 }
@@ -100,4 +107,9 @@ std::string HTTPRequest::get_path()
 std::string HTTPRequest::get_protocol_v()
 {
     return (protocol_v);
+};
+
+std::string HTTPRequest::get_body()
+{
+    return (_body);
 };

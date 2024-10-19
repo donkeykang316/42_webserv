@@ -233,15 +233,115 @@ listenSocketIt->second->getFd() 5050
 listenSocketIt->second->getFd() 4
 listenSocketIt->second->getFd() 8080
 listenSocketIt->second->getFd() 5
-GET /upload/index.html HTTP/1.1
+GET / HTTP/1.1
 Host: 127.0.0.1:5000
 Connection: keep-alive
 Cache-Control: max-age=0
-sec-ch-ua: "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
 sec-ch-ua-mobile: ?0
-sec-ch-ua-platform: "Linux"
+sec-ch-ua-platform: "Windows"
 Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: cross-site
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+9AŽÿ
+Method is GET
+Rest is |9AŽÿ|
+ HOST 127.0.0.1:5000
+ port 5000 host 127.0.0.1
+SERVER 0x55c536f32720
+ currServer localhost
+/
+reposefile GET: ./www/index.html
+1 RESPONSE 
+2 RESPONSE 
+3 RESPONSE 
+fileExtention html filePath 0 getContentTypeFromDictionary text/html text/html
+4 RESPONSE 
+
+
+5 RESPONSE 
+6 RESPONSE 
+RESPONSE DATA: HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Type: text/html
+Content-Length: 185
+
+<!DOCTYPE html>
+<html>
+	<head>
+
+		<link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+	</head>
+<body>
+
+<h1>My First Heading</h1>
+<p>My first paragraph.</p>
+
+</body>
+</html>
+
+GET /favicon.ico?v=2 HTTP/1.1
+Host: 127.0.0.1:5000
+Connection: keep-alive
+sec-ch-ua-platform: "Windows"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+sec-ch-ua-mobile: ?0
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Dest: image
+Referer: http://127.0.0.1:5000/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+9AŽÿ
+Method is GET
+Rest is |gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+9AŽÿ|
+ HOST 127.0.0.1:5000
+ port 5000 host 127.0.0.1
+SERVER 0x55c536f32720
+ currServer localhost
+/favicon.ico?v=2
+reposefile GET: 
+1 RESPONSE 
+2 RESPONSE 
+3 RESPONSE 
+fileExtention  filePath 1 getContentTypeFromDictionary text/html text/html
+4 RESPONSE 
+5 RESPONSE 
+6 RESPONSE 
+RESPONSE DATA: HTTP/1.1 404 Not Found
+Connection: keep-alive
+Content-Type: text/html
+Content-Length: 342
+
+<!DOCTYPE html><head></head><div id="main" style="display: table; width: 100%; height: 100vh; text-align: center; ">
+	<div class="fof" style="display: table-cell; vertical-align: middle; "
+>   		<h1 style="font-size: 50px; display: inline-block; padding-right: 12px; animation: type .5s alternate infinite; ">Error 404</h1>
+	</div>
+</div>
+GET /upload/index.html HTTP/1.1
+Host: 127.0.0.1:5000
+Connection: keep-alive
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Windows"
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
 Sec-Fetch-Site: none
 Sec-Fetch-Mode: navigate
@@ -250,16 +350,20 @@ Sec-Fetch-Dest: document
 Accept-Encoding: gzip, deflate, br, zstd
 Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
 
-ÃC
+.6,zh;q=0.5
+
+9AŽÿ
 Method is GET
-Rest is |ÃC|
+Rest is |.6,zh;q=0.5
+
+9AŽÿ|
  HOST 127.0.0.1:5000
  port 5000 host 127.0.0.1
-SERVER 0x1045720
+SERVER 0x55c536f32720
  currServer localhost
 /upload/index.html
 /upload
-reposefile GET: 0x43c388./www/upload/index.html
+reposefile GET: ./www/upload/index.html
 1 RESPONSE 
 2 RESPONSE 
 3 RESPONSE 
@@ -283,18 +387,67 @@ Content-Length: 266
    </body>
 </html>
 
+GET /favicon.ico HTTP/1.1
+Host: 127.0.0.1:5000
+Connection: keep-alive
+sec-ch-ua-platform: "Windows"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+sec-ch-ua-mobile: ?0
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Dest: image
+Referer: http://127.0.0.1:5000/upload/index.html
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+ept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+.6,zh;q=0.5
+
+9AŽÿ
+Method is GET
+Rest is |ept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+.6,zh;q=0.5
+
+9AŽÿ|
+ HOST 127.0.0.1:5000
+ port 5000 host 127.0.0.1
+SERVER 0x55c536f32720
+ currServer localhost
+/favicon.ico
+reposefile GET: 
+1 RESPONSE 
+2 RESPONSE 
+3 RESPONSE 
+fileExtention  filePath 1 getContentTypeFromDictionary text/html text/html
+4 RESPONSE 
+5 RESPONSE 
+6 RESPONSE 
+RESPONSE DATA: HTTP/1.1 404 Not Found
+Connection: keep-alive
+Content-Type: text/html
+Content-Length: 342
+
+<!DOCTYPE html><head></head><div id="main" style="display: table; width: 100%; height: 100vh; text-align: center; ">
+	<div class="fof" style="display: table-cell; vertical-align: middle; "
+>   		<h1 style="font-size: 50px; display: inline-block; padding-right: 12px; animation: type .5s alternate infinite; ">Error 404</h1>
+	</div>
+</div>
 POST /cgi-bin/save_file.py HTTP/1.1
 Host: 127.0.0.1:5000
 Connection: keep-alive
 Content-Length: 192
 Cache-Control: max-age=0
-sec-ch-ua: "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
 sec-ch-ua-mobile: ?0
-sec-ch-ua-platform: "Linux"
-Upgrade-Insecure-Requests: 1
+sec-ch-ua-platform: "Windows"
 Origin: http://127.0.0.1:5000
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundarywtcqPtn4Ab5qIY4r
-User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryqCLJJSVi4xBSKF4I
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
 Sec-Fetch-Site: same-origin
 Sec-Fetch-Mode: navigate
@@ -304,14 +457,54 @@ Referer: http://127.0.0.1:5000/upload/index.html
 Accept-Encoding: gzip, deflate, br, zstd
 Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
 
-------WebKitFormBoundarywtcqPtn4Ab5qIY4r
-Content-Disposition: form-data; name="filename"
+------WebKitFormBoundaryqCLJJSVi4xBSKF4I
+Content-Disposition: form-data; name
 Method is POST
-Rest is |------WebKitFormBoundarywtcqPtn4Ab5qIY4r
-Content-Disposition: form-data; name="filename"|
+Rest is |------WebKitFormBoundaryqCLJJSVi4xBSKF4I
+Content-Disposition: form-data; name|
  HOST 127.0.0.1:5000
  port 5000 host 127.0.0.1
-SERVER 0x1045720
+SERVER 0x55c536f32720
+ currServer localhost
+CGI PART 
+
+reposefile: /cgi-bin/save_file.py
+1 RESPONSE 
+2 RESPONSE 
+3 RESPONSE 
+fileExtention py filePath 0 getContentTypeFromDictionary application/octet-stream application/octet-stream
+4 RESPONSE 
+5 RESPONSE 
+6 RESPONSE 
+POST /cgi-bin/save_file.py HTTP/1.1
+Host: 127.0.0.1:5000
+Connection: keep-alive
+Content-Length: 192
+Cache-Control: max-age=0
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Windows"
+Origin: http://127.0.0.1:5000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryqCLJJSVi4xBSKF4I
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1:5000/upload/index.html
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5
+
+------WebKitFormBoundaryqCLJJSVi4xBSKF4I
+Content-Disposition: form-data; name
+Method is POST
+Rest is |------WebKitFormBoundaryqCLJJSVi4xBSKF4I
+Content-Disposition: form-data; name|
+ HOST 127.0.0.1:5000
+ port 5000 host 127.0.0.1
+SERVER 0x55c536f32720
  currServer localhost
 CGI PART 
 

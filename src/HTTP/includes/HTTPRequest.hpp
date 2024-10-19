@@ -14,6 +14,7 @@ private:
     std::string method;
     std::string path;
     std::string protocol_v;
+    std::string _body;
     struct LocationStr *location;
     std::string pathToFile;
 
@@ -28,6 +29,7 @@ public:
     std::string get_method();
     std::string get_path();
     std::string get_protocol_v();
+    std::string get_body();
 };
 
 // const std::set<std::string> HTTPRequest::METHODS = {"GET", "POST", "DELETE"};

@@ -36,7 +36,7 @@ $(OBJDIR)%$(OFILES):    $(SRCDIR)%$(SFILES)
 		@$(CC) $(CFLAGS) $< -o $@
 
 run:
-	./$(NAME) ./config > to_be_checked.txt
+	./$(NAME) ./config
 
 clean:
 	@rm -f $(OBJECTS) $(EXE)

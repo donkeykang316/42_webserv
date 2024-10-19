@@ -27,9 +27,12 @@ class cgi {
 private:
 	enum status_code_value status_code;
 	HTTPRequest &_request;
+	std::string _filePath;
 	std::string status_line;
 	std::string response_headers;
 	std::string content;
+	std::string _cgiResponse;
+	std::string _cgiBody;
 	void	_set_content(std::string filePath);
 
 
@@ -41,10 +44,9 @@ private:
 public:
 	cgi(HTTPRequest &request, std::string filePath);
 	~cgi();
-	std::string	_cgiResponse;
-	std::string getDefaultErrorPageContent(enum status_code_value statusCode);
-	
+	void cgiHandler();
+	std::string getCGIresponse() { return _cgiResponse; }
+	std::string getCGIbody() { return _cgiBody; }
 	void envInit();
-	void executeCGI(std::string &filePath, std::string &cmd);
-	void resetHeaders();
+	void executeCGI(const std::string &filePath, const std::string &cmd);
 };
