@@ -1,64 +1,26 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
-import cgi
-import os
-import cgitb
-import sys
-import html
-import logging
+import cgi, os
 
-# Enable CGI error reporting (disable in production)
-cgitb.enable()
+form = cgi.FieldStorage()
 
-# Configure logging
-logging.basicConfig(filename='/home/someng/42_webserv/cgi-bin/cgi_debug.log', level=logging.DEBUG)
+# Get filename here
+fileitem = form['filename']
 
-def save_uploaded_file(field_storage):
-    # Define the directory to save uploaded files
-    upload_dir = "/home/someng/42_webserv/www/upload"  # Update to actual path
+# Test if the file was uploaded
+if fileitem.filename:
+    # Save the uploaded file
+    file_path = os.path.join(os.getcwd(), 'cgi-bin', 'tmp', os.path.basename(fileitem.filename))
+    open(file_path, 'wb').write(fileitem.file.read())
+    os.chmod(file_path, 0o777)
+    
+    # Create a link to the uploaded file
+    file_link = f'<a href="/cgi-bin/tmp/{os.path.basename(fileitem.filename)}">{os.path.basename(fileitem.filename)}</a>'
+    
+    message = f'The file {file_link} was uploaded to {file_path}'
+else:
+    message = 'Uploading Failed'
 
-    # Ensure the upload directory exists
-    os.makedirs(upload_dir, exist_ok=True)
-
-    # Extract filename and sanitize it
-    filename = os.path.basename(field_storage.filename)
-    file_path = os.path.join(upload_dir, filename)
-
-    # Write the file to the designated directory
-    with open(file_path, 'wb') as output_file:
-        data = field_storage.file.read()
-        output_file.write(data)
-
-    return file_path
-
-def main():
-    # Correctly terminate headers with CRLF
-    sys.stdout.write("<!DOCTYPE html>")
-
-    form = cgi.FieldStorage()
-
-    # Log all received fields
-    logging.debug("Received form fields:")
-    for key in form.keys():
-        logging.debug(f"Field: {key}, Value: {form.getvalue(key)}")
-
-    if "file" not in form:
-        logging.debug("No 'file' field found in the form.")
-        sys.stdout.write("<html><body><h1>No file was uploaded.</h1></body></html>")
-        return
-
-    file_item = form["file"]
-
-    if file_item.filename:
-        saved_path = save_uploaded_file(file_item)
-        logging.debug(f"File '{file_item.filename}' saved to '{saved_path}'.")
-        sys.stdout.write("<html><body>")
-        sys.stdout.write("<h1>File '{}' uploaded successfully!</h1>".format(html.escape(file_item.filename)))
-        sys.stdout.write("<p>Saved to: {}</p>".format(html.escape(saved_path)))
-        sys.stdout.write("</body></html>")
-    else:
-        logging.debug("No file was selected for upload.")
-        sys.stdout.write("<html><body><h1>No file was selected for upload.</h1></body></html>")
-
-if __name__ == "__main__":
-    main()
+print("Content-Type: text/html;charset=utf-8")
+print("Content-type:text/html\r\n")
+print("<H1>" + message + "</H1>")

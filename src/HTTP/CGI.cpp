@@ -20,7 +20,7 @@ void cgi::cgiHandler() {
                   ((status_code == ok) ? "OK" : "Bad Request") + "\r\n";
 
     // Construct response headers
-    response_headers = "Connection: keep-alive\r\n";
+    response_headers = "Connection: close\r\n";
 
     // Content-Type based on file extension
     std::string fileExtension = "";
@@ -54,8 +54,10 @@ void cgi::cgiHandler() {
 
 void cgi::envInit() {
 	_env.clear();
+    _env.push_back("AUTH_TYPE=Basic");
 	_env.push_back("REDIRECT_STATUS=200");
 	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+    _env.push_back("CONTENT_TYPE=" + _request.headers["Content-Type"]);
 	_env.push_back("SCRIPT_NAME=" + _request.get_path());
 	_env.push_back("SCRIPT_FILENAME=" + _request.get_path());
 	_env.push_back("REQUEST_URI=" + _request.get_path());
@@ -69,7 +71,7 @@ void cgi::envInit() {
 	_env.push_back("HTTP_REFERER=" + _request.headers["Referer"]);
 	_env.push_back("HTTP_USER_AGENT=" + _request.headers["User-Agent"]);
 	_env.push_back("CONTENT_LENGTH=" + _request.headers["Content-Length"]);
-	_env.push_back("CONTENT_TYPE=" + _request.headers["Content-Type"]);
+    _env.push_back("filename=random");
 	if (_request.headers.find("Referer") != _request.headers.end())
     	_env.push_back("HTTP_REFERER=" + _request.headers["Referer"]);
 }
@@ -115,14 +117,21 @@ void cgi::executeCGI(const std::string& filePath, const std::string& cmd) {
         char *const argv[] = { const_cast<char*>(cmd.c_str()), const_cast<char*>(filePath.c_str()), NULL };
 
         // Prepare environment variables
-        std::vector<char*> envp;
+        char** envp = new char*[_env.size() + 1];
         for (size_t i = 0; i < _env.size(); ++i) {
-            envp.push_back(const_cast<char*>(_env[i].c_str()));
+            envp[i] = new char[_env[i].size() + 1];
+            std::strcpy(envp[i], _env[i].c_str());
         }
-        envp.push_back(NULL);
+        envp[_env.size()] = NULL;
+
+        std::cerr << std::endl;
+	/*std::cerr << "_chENV:\n";
+	for (int i = 0; envp[i] != NULL; ++i) {
+        std::cerr << "" << envp[i] << std::endl;
+    }*/
 
         // Execute the CGI script
-        if (execve(cmdPath.c_str(), argv, envp.data()) == -1) {
+        if (execve(cmdPath.c_str(), argv, envp) == -1) {
             std::cerr << "Execution failed: " << strerror(errno) << std::endl;
             std::exit(1);
         }

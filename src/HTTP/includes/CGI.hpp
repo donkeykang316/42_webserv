@@ -25,7 +25,7 @@
 
 class cgi {
 private:
-	enum status_code_value status_code;
+	//enum status_code_value status_code;
 	HTTPRequest &_request;
 	std::string _filePath;
 	std::string status_line;
@@ -33,9 +33,6 @@ private:
 	std::string content;
 	std::string _cgiResponse;
 	std::string _cgiBody;
-	void	_set_content(std::string filePath);
-
-
 
 	std::vector<std::string>			_env;
 

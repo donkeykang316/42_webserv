@@ -339,15 +339,12 @@ void Configuration::start()
 			if (FD_ISSET(clientfd, &read_fds))
 			{
 				// Read client's request
-				char buffer[1024];
+				char buffer[30000];
 				ssize_t bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
 				if (bytesReceived == -1)
 				{
 					std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
-					close(clientfd);
 					FD_CLR(clientfd, &master_set);
-					// Remove from clientSockets
-					clientSockets.erase(clientSockets.begin() + i);
 					--i; // Adjust index after removal
 					continue;
 				}
@@ -369,7 +366,7 @@ void Configuration::start()
 					std::cout << "reposefile GET: " << responseFile << std::endl;
 					HTTPResponse response(*request, responseFile);
 					delete request;
-					std::cout << "RESPONSE DATA: " << response.response << std::endl;
+					//std::cout << "RESPONSE DATA: " << response.response << std::endl;
 					send(clientfd ,response.response.c_str(), response.response.size(),0);
 				}
 				else {
@@ -377,45 +374,12 @@ void Configuration::start()
 					std::string	postPath = request->get_path();
 					cgi cgi(*request, postPath);
 					cgi.cgiHandler();
-					std::cout << "RESPONSE DATA:\n" << cgi.getCGIresponse() << std::endl;
+					//std::cout << "RESPONSE DATA:\n" << cgi.getCGIresponse() << std::endl;
 
 					send(clientfd, cgi.getCGIresponse().c_str(), cgi.getCGIresponse().size(),0);
 				}
-				
-				close(clientfd);
-				FD_CLR(clientfd, &master_set);
-				clientSockets.erase(clientSockets.begin() + i);
-				--i;
-				continue;
-
-		// 		std::istringstream bufferString(buffer);
-		// 		// setEnv(bufferString);
-		// 		// printEnv();
-		// 		std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
-		// 		if (it->second.first == GET)
-		// 		{
-		// 			if (!sendHTTPResponse(it->second.second, clientfd))
-		// 			{
-		// 				close(clientfd);
-		// 				FD_CLR(clientfd, &master_set);
-		// 				clientSockets.erase(clientSockets.begin() + i);
-		// 				--i;
-		// 				continue;
-		// 			}
-		// 		}
-		// 		else if (it->second.first == POST)
-		// 		{
-		// 			if (!postResponse(it->second.second, clientfd))
-		// 			{
-		// 				close(clientfd);
-		// 				FD_CLR(clientfd, &master_set);
-		// 				clientSockets.erase(clientSockets.begin() + i);
-		// 				--i;
-		// 				continue;
-		// 			}
-		// 		}
 			}
 		}
-		// iteratorClean();
+
 	}
 }
