@@ -35,6 +35,9 @@ $(EXE): $(OBJECTS)
 $(OBJDIR)%$(OFILES):    $(SRCDIR)%$(SFILES)
 		@$(CC) $(CFLAGS) $< -o $@
 
+run:
+	./$(NAME) ./config
+
 clean:
 	@rm -f $(OBJECTS) $(EXE)
 	@rm -rf $(OBJECTSSUBFOLDERS)

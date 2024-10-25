@@ -13,6 +13,7 @@
 # include "LocationConfig.hpp"
 # include "ServerConfig.hpp"
 # include "../../WebServer/includes/ServerSocket.hpp"
+# include "../../HTTP/includes/CGI.hpp"
 
 class Configuration
 {

@@ -124,6 +124,43 @@ HTTPRequest::HTTPRequest(char const *buffer, Dictionary &dict): dictionary(dict)
             return ;
     }
     // TODO:: parse body
+    // 2. Parse block of headers from request
+    while (buff.find_first_of("\r\n"))
+    {
+        std::string header;
+        header.append(buff.substr(0, buff.find_first_of('\r')));
+        size_t colon_pos = header.find(':');
+        if (colon_pos == header.length())
+        {
+            this->status_code = bad_request;
+            std::cout << " Wrong header's format" << std::endl;
+            return ;
+        }
+        buff.erase(0, header.length() + 2);
+
+        std::string key;
+
+        key.append(header.substr(0, colon_pos));
+        header.erase(0, key.length() + 1);
+        header.erase(0, header.find_first_not_of(" "));
+        headers.insert(std::pair<std::string, std::string>(key, header));
+    }
+    buff.erase(0, buff.find_first_not_of("\r\n"));
+    //  chack on header "Host"
+    if (headers.find("Host") == headers.end())
+    {
+         this->status_code = bad_request;
+            std::cout << " Wrong header's format: no info about host" << std::endl;
+            return ;
+    }
+
+    std::cerr << "\ncontent  type |" << headers["Content-Type"] << "|\n" << std::endl;
+
+    // TODO:: parse body
+     _body = headers["Content-Type"];
+
+    std::cout << "_body |" << _body << "|" << std::endl;
+
     // std::cout << "Rest is |" << buff  << "|" << std::endl;
 
 }
@@ -287,6 +324,8 @@ void HTTPRequest::fillRequestData(char const * buffer)
     std::cout << buffer << std::endl;
     std::cout << ">> FILL REQUEST DATA " << std::endl;
 
+    std::cerr << "1EROORRRR !!!!!!!!!!!!!!!\n";
+
     if (_requestType != UNKNOWN_REQUEST_TYPE && !isHeadersSet)
     {
         fillRequestHeaders(buffer);
@@ -350,4 +389,9 @@ void HTTPRequest::fillRequestData(char const * buffer)
     buff.erase(0, buff.find_first_not_of("\r\n"));
     _fillQueryParams();
     fillRequestHeaders("");
+    std::cerr << "2EROORRRR !!!!!!!!!!!!!!!\n";
+}
+
+std::string HTTPRequest::getBody() {
+    return _body;
 }

@@ -367,18 +367,24 @@ void Configuration::start()
 					--i; // Adjust index after removal
 					continue;
 				}
+				std::string hostAndPort;
+				std::string port;
+				std::string host;
+				WebServer *currServer = NULL;
+				std::string responseFile;
+				HTTPResponse *response;
 				while (bytesReceived > 0)
 				{
 					std::cout << "BUFFER: " << buffer << "|BUFFER eND" << std::endl;
 					clientRequest.fillRequestData(buffer);
 					if (clientRequest.response == NULL)
 					{
-						std::string hostAndPort = clientRequest.headers["Host"];
-						std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
-						std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
-						WebServer *currServer = _serverSockets[port]->getServer(port);
-						std::string responseFile = currServer->getResponseFilePath(&clientRequest);
-						HTTPResponse *response = new HTTPResponse(clientfd, clientRequest, responseFile);
+						hostAndPort = clientRequest.headers["Host"];
+						port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
+						host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
+						currServer = _serverSockets[port]->getServer(port);
+						responseFile = currServer->getResponseFilePath(&clientRequest);
+						response = new HTTPResponse(clientfd, clientRequest, responseFile);
 						clientRequest.response = response;
 
 					}
@@ -403,7 +409,7 @@ void Configuration::start()
 
 				// // Move to Obj
 
-				// WebServer *currServer = _serverSockets[port]->getServer(port);
+				//WebServer *currServer = _serverSockets[port]->getServer(port);
 				// // std::cout << "SERVER " << currServer->getServerNameAliases().begin()._M_node << std::endl;
 				// // std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
 
@@ -427,15 +433,36 @@ void Configuration::start()
 				// Move to Obj
 				// while (!clientRequest.isFulfilled)
 					// sleep(1);
+
+				std::cerr << "\nclientfd: " << clientfd << std::endl;
+				std::cerr << std::endl;
 				if (clientRequest.isFulfilled)
 				{
+					if (clientRequest.get_method() == "GET") {
+					std::string responseFile = currServer->getResponseFilePath(&clientRequest);
+					std::cout << "reposefile GET: " << responseFile << std::endl;
+					HTTPResponse response(clientfd, clientRequest, responseFile);
+					delete currServer;
+					//std::cout << "RESPONSE DATA: " << response.response << std::endl;
+					send(clientfd ,response.response.c_str(), response.response.size(),0);
+				}
+				else {
+					std::string cmd = "python3";
+					std::string	postPath = clientRequest.get_path();
+					cgi cgi(clientRequest, postPath);
+					cgi.cgiHandler();
+					delete currServer;
+					//std::cout << "RESPONSE DATA:\n" << cgi.getCGIresponse() << std::endl;
+
+					send(clientfd, cgi.getCGIresponse().c_str(), cgi.getCGIresponse().size(),0);
+				}
 					// sleep(5);
 					delete httpRequests[clientfd];
 					httpRequests.erase(clientfd);
 					close(clientfd);
 					FD_CLR(clientfd, &master_set);
 					clientSockets.erase(clientSockets.begin() + i);
-					--i;
+					//--i;
 				}
 				continue;
 

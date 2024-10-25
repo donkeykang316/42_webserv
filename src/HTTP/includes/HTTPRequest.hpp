@@ -16,6 +16,7 @@ private:
     std::string buff;
     std::string method;
     std::string path;
+    std::string _body;
     std::map<std::string, std::string> queryParams;
     std::string protocol_v;
     std::string pathToFile;
@@ -44,6 +45,7 @@ public:
     void setRequestType(enum eRequestType requestType);
     void urlDecode(std::string &url);
     std::string getBuffer();
+    std::string getBody();
     void fillRequestHeaders(char const * buffer);
 
     void fillRequestData(char const * buffer);

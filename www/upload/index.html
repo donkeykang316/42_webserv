@@ -1,8 +1,33 @@
-<html>
-   <body>
-      <form enctype = "multipart/form-data" action = "../../cgi-bin/save_file.py/upload" method = "post">
-      <p>File: <input type = "file" name = "filename" /></p>
-      <p><input type = "submit" value = "Upload" /></p>
-      </form>
-   </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+</head>
+<body>
+    <h2>File Upload</h2>
+    <form action="/cgi-bin/save_file.py" method="post" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="filename">
+        <input type="submit" value="Upload">
+    </form>
+	<div id="fileInfo"></div> 
+    <a id="downloadLink" style="display: none;" download>Download File</a>
+	<br>
+	
+	<hr><h2>Files currently stored on the server</h2>
+	<embed type="text/html" src="/cgi-bin/list.sh" width="200" height="50">
+
+	<br><br><hr>
+	<form action="/cgi-bin/delete.py" method="POST" enctype="multipart/form-data">
+	<label for="filename"><h2>Which file to delete?</h2></label>
+	<input type="text" id="fileInput" name="filename">
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<input type="submit" value="Delete">
+	</form>
+	<br>
+	
+</body>
 </html>
