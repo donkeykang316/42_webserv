@@ -49,6 +49,8 @@ void LocationConfig::resetToDefault()
 	this->cgiInclude.clear();
 	this->cgiParams.clear();
 	this->errorPages.clear();
+	this->redirection = std::make_pair("","");
+	this->regexValue.clear();
 }
 void LocationConfig::setUri(std::vector<std::string> vector)
 {
@@ -77,6 +79,23 @@ void LocationConfig::setUri(std::vector<std::string> vector)
 		return ;
 	}
 	uri = vector[idx];
+	if (modifier[0] == '~')
+	{
+		size_t start = 0;
+		size_t end = uri.size();
+		if (uri.find('^') == 0)
+			start++;
+		if (uri.find_last_of('$') == (uri.size() - 1))
+			end--;
+		regexValue.append(uri.substr(start, end));
+		size_t i = 0;
+		while ((i = regexValue.find_first_of('\\', i)) != std::string::npos)
+		{
+			regexValue.erase(regexValue.begin() + i);
+			i++;
+		}
+		std::cout << "REGEX: " << regexValue << std::endl;
+	}
 }
 void LocationConfig::setRoot(std::vector<std::string> vector)
 {
@@ -217,6 +236,8 @@ void LocationConfig::fillAttributes(std::vector<std::string> confLineVector, Dic
 		setCgiInclude(confLineVector);
 	else if (!attributeName.compare("cgi_param"))
 		setCgiParams(confLineVector);
+	else if (!attributeName.compare("return"))
+		setRedirection(confLineVector);
 }
 
 bool LocationConfig::isValid()
@@ -233,3 +254,17 @@ bool	LocationConfig::isMethodAllowed(std::string method)
 	return (false);
 }
 
+std::string LocationConfig::getRegexValue()
+{
+	return(this->regexValue);
+}
+
+
+std::string LocationConfig::getCgiExtentionFromUri(std::string uri)
+{
+	size_t pos = uri.find_last_of('.');
+	if (pos == std::string::npos || uri.size() - pos < 3)
+		return ("");
+	size_t endPos = uri.substr(pos + 1).find_first_not_of("abcdefghijklmnopqrstuvwxyz");
+	return (uri.substr(pos, endPos));
+}

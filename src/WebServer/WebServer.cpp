@@ -110,27 +110,70 @@ std::string WebServer::getResponseErrorFilePath(LocationConfig *location, enum s
 	return (errPagePath);
 }
 
+std::string WebServer::getRedirectionPath(std::string &requestUri, LocationConfig *location, HTTPRequest *request)
+{
+	std::string redirectionUri = "";
+
+	//get location redirection
+	if (location && !location->getRedirection().first.empty())
+	{
+		request->setRequestType(REDIRECT_REQUEST);
+		redirectionUri.append(location->getRedirection().second);
+		request->setStatusCode(moved_permanently);
+	}
+	std::pair<std::string, std::string> serverRedirection = serverConfig->getRedirection();
+	// get server redirection
+	std::string serverStatusCode = serverRedirection.first;
+	if (request->getRequestType() != REDIRECT_REQUEST && !serverStatusCode.empty())
+	{
+		request->setRequestType(REDIRECT_REQUEST);
+		redirectionUri.append(serverRedirection.second);
+		request->setStatusCode(moved_permanently);
+	}
+	std::string confVarRedirUri = dictionary.getConfigVariable("REQUEST_URI");
+	size_t confVarRedirUriSize = confVarRedirUri.size();
+	if (confVarRedirUriSize)
+	{
+		size_t pos = redirectionUri.find(confVarRedirUri);
+		if (pos == std::string::npos)
+			return (redirectionUri);
+		redirectionUri.replace(redirectionUri.begin() + pos, redirectionUri.end() + pos + confVarRedirUriSize, requestUri);
+	}
+	return (redirectionUri);
+}
+
+
 std::string WebServer::getResponseFilePath(HTTPRequest *request)
 {
 	std::string filePath;
 
 	std::string requestUri = request->get_path();
-	// get the location that matches uri of the request
-	LocationConfig *location = serverConfig->getLocation(requestUri);
+
+		// get the location that matches uri of the request
+	request->location = serverConfig->getLocation(requestUri);
+	// check is it cgi
+	if (request->location->isCgi)
+		return (requestUri);
+
+	// redirection
+	filePath = getRedirectionPath(requestUri, request->location, request);
+	if (request->getRequestType() == REDIRECT_REQUEST)
+		return (filePath);
+
 	// if there no location or method is not allowed set error status code
-	if (location == NULL)
+	if (request->location == NULL)
 		request->setStatusCode(not_found);
-	else if (!location->isMethodAllowed(request->get_method()))
+	else if (!request->location->isMethodAllowed(request->get_method()))
 		request->setStatusCode(method_not_allowed);
 	// get path of file
 	else
 	{
 		std::string restUriPath;
 
-		filePath.append(location->root);
+		filePath.append(request->location->root);
 
 		size_t requestPathSize = request->get_path().size();
-		size_t restUriSize = requestPathSize - location->uri.size();
+		size_t restUriSize = requestPathSize - request->location->uri.size();
 		if (restUriSize)
 		{
 			filePath.append("/");
@@ -140,10 +183,29 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 		filePath.append(restUriPath);
 
 		std::string fileExtention = getUriExtention(filePath);
+		if (request->location->autoindex && !fileExtention.size() && request->location->index.empty())
+		{
+			if (request->getRequestType() == GET_FILE)
+				request->setRequestType(GET_DIR_LIST);
+			DIR *dir;
+	// struct dirent *ent;
+			std::string relativePath = ".";
+			relativePath.append(filePath);
+			if ((dir = opendir(relativePath.c_str())) != NULL)
+			{
+				std::cout << "FILE DIR IS AVAILABLE " << filePath << std::endl;
+				closedir (dir);
+				return (filePath);
+			}
+			std::cout << "FILE DIR IS NOT AVAILABLE " << filePath << std::endl;
+
+			closedir (dir);
+			request->setStatusCode(not_found);
+		}
 		if (!fileExtention.size())
 		{
 			filePath.append("/");
-			filePath.append(location->index);
+			filePath.append(request->location->index);
 		}
 		std::string relativePath = ".";
 		relativePath.append(filePath);
@@ -160,7 +222,7 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 		else
 		{
 			filePath.clear();
-			filePath.append(getResponseErrorFilePath(location, request->get_status_code()));
+			filePath.append(getResponseErrorFilePath(request->location, request->get_status_code()));
 		}
 	}
 	return (filePath);
@@ -170,3 +232,4 @@ std::set<std::string> WebServer::getServerNameAliases()
 {
 	return (this->serverConfig->getServerNameAliases());
 };
+

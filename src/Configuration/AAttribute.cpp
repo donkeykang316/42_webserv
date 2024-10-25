@@ -52,3 +52,24 @@ void Attribute::addErrorPages(std::vector<std::string> vector)
 		errorPages[vector[i]] = errPath;
 	}
 }
+
+void	Attribute::setRedirection(std::vector<std::string> vector)
+{
+	if (vector.size() != 3)
+	{
+		std::cout << "Instruction \"" << vector[0] << "\" must have 2 values: status code and url" << std::endl;
+		return;
+	}
+	if (vector[1].find_first_not_of("0123456789") != vector[1].npos)
+	{
+		std::cout << "Instruction \"" << vector[0] << "\" status code must use only digits" << std::endl;
+		return;
+	}
+	redirection = std::make_pair(vector[1], vector[2]);
+}
+
+
+std::pair<std::string, std::string> Attribute::getRedirection()
+{
+	return (this->redirection);
+}

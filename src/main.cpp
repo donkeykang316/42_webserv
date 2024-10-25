@@ -12,6 +12,12 @@ if (argc < 2)
 Configuration config(argv[1]);
 config.printConfigurationData();
 config.start();
+// std::string uri = "dgdg";
+// size_t pos = uri.find_first_not_of("abcdef");
+// if (pos == std::string::npos)
+// size_t poss = uri.find('a');
+// uri.insert()
+
 // std::map<std::string, int> listenSockets;
 // std::map<std::string, std::set<std::string> > defaultServerNames;
 // std::map<std::string, std::set<std::string> > otherServerNames;

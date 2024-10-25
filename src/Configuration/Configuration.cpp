@@ -33,7 +33,7 @@ void Configuration::parseConfig()
 	std::string configLine;
 	std::vector<std::string> confLineVector;
 
-	ServerConfig *server = new ServerConfig();
+	ServerConfig *server = new ServerConfig(dictionary);
 	LocationConfig location(dictionary, server->errorPages, server->clientMaxBodySize);
 
 	while (std::getline(nameFileOut, configLine))
@@ -72,7 +72,7 @@ void Configuration::parseConfig()
 				{
 				case 1:
 					if (location.isValid())
-						server->locations.push_back(location);
+						server->addLocation(location);
 					else
 					{
 						std::cout << "ERROR WITH VALIDATION OF LOCATION on line " << lineNb << std::endl;
@@ -88,7 +88,7 @@ void Configuration::parseConfig()
 						delete server;
 					// 	exit(1);
 					}
-					server = new ServerConfig();
+					server = new ServerConfig(dictionary);
 				default:
 					break;
 				}
@@ -121,7 +121,7 @@ void Configuration::parseConfig()
 				switch (dictionary.getConfigBlockLevel(blockInProgressStack.top()))
 				{
 				case 0:
-					server->fillAttributes(confLineVector, dictionary);
+					server->fillAttributes(confLineVector);
 					break;
 				case 1:
 					location.fillAttributes(confLineVector, dictionary);
@@ -158,6 +158,11 @@ void Configuration::printConfigurationData()
 		for (std::set<std::string>::iterator serverNameAlias = serverNameAliases.begin(); serverNameAlias != serverNameAliases.end(); serverNameAlias++)
 		std::cout << *serverNameAlias << " ";
 		std::cout << std::endl;
+		std::pair<std::string, std::string> redir = currServer->getRedirection();
+		if (redir.first.size())
+		{
+			std::cout << "--- redirection port: " << redir.first << " url " << redir.second << std::endl;
+		}
 		std::cout << "--- clientMaxBodySize: " << currServer->clientMaxBodySize << std::endl;
 		std::cout << "--- ERROR PAGES: " << std::endl;
 		std::map<std::string, std::vector<std::string> >::iterator itErr;
@@ -198,6 +203,11 @@ void Configuration::printConfigurationData()
 				std::cout << itMethod->data() << " ";
 			}
 			std::cout << "]" << std::endl;
+			std::pair<std::string, std::string> redirLoc = currLocation->getRedirection();
+			if (redirLoc.first.size())
+			{
+				std::cout << "--- redirection port: " << redirLoc.first << " url " << redirLoc.second << std::endl;
+			}
 			std::cout << "------ ERROR PAGES: " << std::endl;
 
 			for (itErr = currLocation->errorPages.begin(); itErr != currLocation->errorPages.end(); itErr++)
@@ -285,7 +295,9 @@ void Configuration::start()
 
 	// Vector to keep track of client sockets
 	std::vector<int> clientSockets;
+	std::map<int, HTTPRequest*> httpRequests;
 	clientSockets.clear();
+	httpRequests.clear();
 	while (true)
 	{
 		read_fds = master_set;
@@ -329,6 +341,8 @@ void Configuration::start()
 				if (newfd > fd_max)
 					fd_max = newfd;
 				clientSockets.push_back(newfd);
+				HTTPRequest *clientRequest = new HTTPRequest((this->dictionary));
+				httpRequests[newfd] = clientRequest;
 			}
 		}
 
@@ -336,14 +350,16 @@ void Configuration::start()
 		for (size_t i = 0; i < clientSockets.size(); ++i)
 		{
 			int clientfd = clientSockets[i];
+			HTTPRequest clientRequest = *httpRequests[clientfd];
 			if (FD_ISSET(clientfd, &read_fds))
 			{
 				// Read client's request
-				char buffer[1024];
+				char buffer[1024] = "";
 				ssize_t bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
 				if (bytesReceived == -1)
 				{
 					std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
+					httpRequests.erase(clientfd);
 					close(clientfd);
 					FD_CLR(clientfd, &master_set);
 					// Remove from clientSockets
@@ -351,28 +367,76 @@ void Configuration::start()
 					--i; // Adjust index after removal
 					continue;
 				}
+				while (bytesReceived > 0)
+				{
+					std::cout << "BUFFER: " << buffer << "|BUFFER eND" << std::endl;
+					clientRequest.fillRequestData(buffer);
+					if (clientRequest.response == NULL)
+					{
+						std::string hostAndPort = clientRequest.headers["Host"];
+						std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
+						std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
+						WebServer *currServer = _serverSockets[port]->getServer(port);
+						std::string responseFile = currServer->getResponseFilePath(&clientRequest);
+						HTTPResponse *response = new HTTPResponse(clientfd, clientRequest, responseFile);
+						clientRequest.response = response;
 
-				std::cout << buffer << std::endl;
-				HTTPRequest *request = new HTTPRequest(buffer, dictionary);
-				std::string hostAndPort = request->headers["Host"];
-				std::cout << " HOST " << hostAndPort << std::endl;
-				std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
-				std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
-				std::cout << " port " << port << " host " << host << std::endl;
+					}
+					bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
+				}
+				clientRequest.isFulfilled = true;
+				clientRequest.fillRequestData("");
+				// std::cout << "CLIENT RESPONSE " << clientRequest.response->response << "|" << std::endl;
+				// if (!clientRequest.location->isCgi)
+					send(clientfd , clientRequest.response->response.c_str(), clientRequest.response->response.size(),0);
 
-				WebServer *currServer = _serverSockets[port]->getServer(port);
-				std::cout << "SERVER " << currServer->getServerNameAliases().begin()._M_node << std::endl;
-				std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
+				// std::cout << "-----------NEW REQUEST----------" <<std::endl;
+				// std::cout << buffer << std::endl;
+				// std::cout << "-----------END OF REQUEST----------" <<std::endl;
+				// // Remove
+				// HTTPRequest *request = new HTTPRequest(buffer, dictionary);
+				// std::string hostAndPort = request->headers["Host"];
+				// // std::cout << " HOST " << hostAndPort << std::endl;
+				// std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
+				// std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
+				// // std::cout << " port " << port << " host " << host << std::endl;
 
-				std::string responseFile = currServer->getResponseFilePath(request);
-				HTTPResponse response(*request, responseFile);
-				delete request;
-				std::cout << "RESPONSE DATA: " << response.response << std::endl;
-				send(clientfd ,response.response.c_str(), response.response.size(),0);
-				close(clientfd);
-				FD_CLR(clientfd, &master_set);
-				clientSockets.erase(clientSockets.begin() + i);
-				--i;
+				// // Move to Obj
+
+				// WebServer *currServer = _serverSockets[port]->getServer(port);
+				// // std::cout << "SERVER " << currServer->getServerNameAliases().begin()._M_node << std::endl;
+				// // std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
+
+
+				// std::string responseFile = currServer->getResponseFilePath(request);
+
+
+				// std::cout << "********responseFile " << responseFile << std::endl;
+				// if (request->location->isCgi)
+				// {
+				// 	currServer->runCGI(request->location, request);
+				// }
+				// else
+				// {
+				// 	HTTPResponse response(*request, responseFile);
+				// 	delete request;
+				// 	std::cout << "RESPONSE DATA: " << response.response << std::endl;
+				// 	send(clientfd ,response.response.c_str(), response.response.size(),0);
+				// }
+
+				// Move to Obj
+				// while (!clientRequest.isFulfilled)
+					// sleep(1);
+				if (clientRequest.isFulfilled)
+				{
+					// sleep(5);
+					delete httpRequests[clientfd];
+					httpRequests.erase(clientfd);
+					close(clientfd);
+					FD_CLR(clientfd, &master_set);
+					clientSockets.erase(clientSockets.begin() + i);
+					--i;
+				}
 				continue;
 
 		// 		std::istringstream bufferString(buffer);

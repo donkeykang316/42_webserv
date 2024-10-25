@@ -16,10 +16,21 @@ void Dictionary::_setConfigDictionary()
 	std::string blockNames[] = {"server", "location"};
 	for (int i = 0; i < 2; i++)
 		configBlockLevels[blockNames[i]] = i;
-	std::string serverAttributes[] = {"listen", "server_name", "error_page", "client_max_body_size", "location"};
-	std::string locationAttributes[] = {"root", "index", "allow_methods", "error_page", "autoindex", "cgi_pass", "cgi_index", "include", "cgi_param"};
+	std::string serverAttributes[] = {"listen", "server_name", "error_page", "client_max_body_size", "location", "return"};
+	std::string locationAttributes[] = {"root", "index", "allow_methods", "error_page", "autoindex", "cgi_pass", "cgi_index", "include", "cgi_param", "return"};
 	configServerAttributes = std::set<std::string>(serverAttributes, serverAttributes + sizeof(serverAttributes) / sizeof(serverAttributes[0]));
 	configLocationAttributes = std::set<std::string>(locationAttributes, locationAttributes + sizeof(locationAttributes) / sizeof(locationAttributes[0]));
+
+	configVariables["REQUEST_URI"] = "$request_uri";
+	std::string cgiExtensions[] = {".php", ".py"};
+	for (int i = 0; i < 2; i++)
+		supportedCGIExtensions[cgiExtensions[i]] = cgiExtensions->substr(1);
+	supportedCGIExecutors["php"] = "php-cgi -q";
+	supportedCGIExecutors["py"] = "python3";
+	// cgiExtensions.
+	// for ()
+	// supportedCGIExtensions[".php"] = "php";
+	// supportedCGIExtensions[".py"] = "py";
 }
 
 int	Dictionary::getConfigBlockLevel(std::string blockName)
@@ -91,3 +102,25 @@ std::string Dictionary::getContentTypeFromDictionary(std::string type)
 	return (contentTypes[type]);
 }
 
+std::string Dictionary::getConfigVariable(std::string alias)
+{
+	if (configVariables.find(alias) == configVariables.end())
+		return ("");
+	return (configVariables[alias]);
+}
+
+std::string Dictionary::getSupportedCGIExtension(std::string ext)
+{
+	if (this->supportedCGIExtensions.find(ext) != this->supportedCGIExtensions.end())
+		return (this->supportedCGIExtensions[ext]);
+	else
+		return ("");
+}
+
+std::string Dictionary::getSupportedCGIExecutor(std::string ext)
+{
+	if (this->supportedCGIExecutors.find(ext) != this->supportedCGIExecutors.end())
+		return (this->supportedCGIExecutors[ext]);
+	else
+		return ("");
+}
