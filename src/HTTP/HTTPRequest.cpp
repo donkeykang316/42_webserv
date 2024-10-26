@@ -324,7 +324,6 @@ void HTTPRequest::fillRequestData(char const * buffer)
     std::cout << buffer << std::endl;
     std::cout << ">> FILL REQUEST DATA " << std::endl;
 
-    std::cerr << "1EROORRRR !!!!!!!!!!!!!!!\n";
 
     if (_requestType != UNKNOWN_REQUEST_TYPE && !isHeadersSet)
     {
@@ -389,7 +388,6 @@ void HTTPRequest::fillRequestData(char const * buffer)
     buff.erase(0, buff.find_first_not_of("\r\n"));
     _fillQueryParams();
     fillRequestHeaders("");
-    std::cerr << "2EROORRRR !!!!!!!!!!!!!!!\n";
 }
 
 std::string HTTPRequest::getBody() {

@@ -9,7 +9,7 @@ OBJSUBDIR	:= $(TOPDIR)obj/Configuration
 SFILES	:= cpp
 OFILES	:= o
 CC		:= c++
-CFLAGS	:= -c -Wall -Wextra -Werror -std=c++98 -g
+CFLAGS	:= -c -Wall -Wextra -Werror -std=c++98 -g3
 
 SOURCES := $(shell find $(SRCDIR) -name "*.$(SFILES)")
 OBJECTSSUBFOLDERS := $(addprefix $(OBJDIR)/, $(shell cd src && printf -- '%s\n' */ && cd ../))
