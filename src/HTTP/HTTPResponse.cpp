@@ -6,7 +6,18 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 	cgiResponseFd = 0;
 	// fdForCGIIncome = dup(0);
 	response.clear();
-		std::cout << "HTTPResponse::HTTPResponse" << std::endl;
+	std::cout << "HTTPResponse::HTTPResponse" << std::endl;
+
+	if (filePath == "./favicon.ico")
+	{
+		response.append("HTTP/1.1 200 Not Found\r\n");
+		response.append("Content-Type: text/html\r\n");
+		response.append("Content-Length: 0\r\n");
+		response.append("\r\n");
+		sendResponse();
+		return ;
+	}
+
 	if (_request.location->isCgi)
 	{
 		std::cout << "Problem is here" << std::endl;

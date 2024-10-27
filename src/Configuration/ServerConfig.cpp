@@ -107,10 +107,10 @@ bool ServerConfig::isValid()
 	return (true);
 }
 
-LocationConfig *ServerConfig::getRegexLocation(std::string path)
+LocationConfig *ServerConfig::getRegexLocation(const std::string &path)
 {
 	LocationConfig *currRegexLocation = NULL;
-	for (std::vector<LocationConfig>::iterator it = this->regexLocations.begin(); it != this->regexLocations.end(); it++)
+	for (std::vector<LocationConfig>::iterator it = this->regexLocations.begin(); it != this->regexLocations.end(); ++it)
 	{
 		std::string regexVal = it->getRegexValue();
 		if (path.find(regexVal) == std::string::npos)
@@ -222,7 +222,7 @@ void ServerConfig::addLocation(LocationConfig location)
 		LocationConfig *sameRegexLocation = this->getSameRegexLocation(location.uri);
 		if (sameRegexLocation)
 			sameRegexLocation = &location;
-		else
+		else 
 			regexLocations.push_back(location);
 		return ;
 	}

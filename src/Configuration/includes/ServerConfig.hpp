@@ -4,6 +4,7 @@
 # include "LocationConfig.hpp"
 # include <sstream>
 # include <algorithm>
+# include <unistd.h>
 
 
 class ServerConfig: public Attribute
@@ -36,7 +37,7 @@ public:
 	std::set<std::string> getListenPorts();
 	void addLocation(LocationConfig location);
 
-	LocationConfig *getRegexLocation(std::string path);
+	LocationConfig *getRegexLocation(const std::string &path);
 	LocationConfig *getLocation(std::string path);
 
 };

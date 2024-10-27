@@ -148,8 +148,12 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 	std::string filePath;
 
 	std::string requestUri = request->get_path();
-
-		// get the location that matches uri of the request
+	if (requestUri == "/favicon.ico") 
+	{
+		request->setStatusCode(ok);
+		return ("./favicon.ico");
+	}
+	// get the location that matches uri of the request
 	request->location = serverConfig->getLocation(requestUri);
 	// check is it cgi
 	if (request->location->isCgi)

@@ -7,8 +7,10 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netdb.h>
-#include <sys/poll.h>
+# include <sys/poll.h>
 # include <algorithm>
+# include <fstream>
+# include <cstring>
 
 # include "../../Configuration/includes/Dictionary.hpp"
 # include "../../Configuration/includes/ServerConfig.hpp"
