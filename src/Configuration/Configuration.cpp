@@ -356,7 +356,7 @@ void Configuration::start()
 				// Read client's request
 				char buffer[1024] = "";
 				ssize_t bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
-				if (bytesReceived == -1)
+				if (bytesReceived == 0)
 				{
 					std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
 					httpRequests.erase(clientfd);
@@ -373,12 +373,12 @@ void Configuration::start()
 				WebServer *currServer = NULL;
 				std::string responseFile;
 				HTTPResponse *response;
+				std::string requestBuffer;
 				while (bytesReceived > 0)
 				{
 					std::cout << "BUFFER: " << buffer << "|BUFFER eND" << std::endl;
 					clientRequest.fillRequestData(buffer);
-					if (clientRequest.response == NULL)
-					{
+					if (clientRequest.response == NULL) {
 						hostAndPort = clientRequest.headers["Host"];
 						port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
 						host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
@@ -386,54 +386,12 @@ void Configuration::start()
 						responseFile = currServer->getResponseFilePath(&clientRequest);
 						response = new HTTPResponse(clientfd, clientRequest, responseFile);
 						clientRequest.response = response;
-
 					}
 					bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
 				}
 				clientRequest.isFulfilled = true;
-				clientRequest.fillRequestData("");
-				// std::cout << "CLIENT RESPONSE " << clientRequest.response->response << "|" << std::endl;
-				// if (!clientRequest.location->isCgi)
-					send(clientfd , clientRequest.response->response.c_str(), clientRequest.response->response.size(),0);
-
-				// std::cout << "-----------NEW REQUEST----------" <<std::endl;
-				// std::cout << buffer << std::endl;
-				// std::cout << "-----------END OF REQUEST----------" <<std::endl;
-				// // Remove
-				// HTTPRequest *request = new HTTPRequest(buffer, dictionary);
-				// std::string hostAndPort = request->headers["Host"];
-				// // std::cout << " HOST " << hostAndPort << std::endl;
-				// std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
-				// std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
-				// // std::cout << " port " << port << " host " << host << std::endl;
-
-				// // Move to Obj
-
-				//WebServer *currServer = _serverSockets[port]->getServer(port);
-				// // std::cout << "SERVER " << currServer->getServerNameAliases().begin()._M_node << std::endl;
-				// // std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
-
-
-				// std::string responseFile = currServer->getResponseFilePath(request);
-
-
-				// std::cout << "********responseFile " << responseFile << std::endl;
-				// if (request->location->isCgi)
-				// {
-				// 	currServer->runCGI(request->location, request);
-				// }
-				// else
-				// {
-				// 	HTTPResponse response(*request, responseFile);
-				// 	delete request;
-				// 	std::cout << "RESPONSE DATA: " << response.response << std::endl;
-				// 	send(clientfd ,response.response.c_str(), response.response.size(),0);
-				// }
-
-				// Move to Obj
-				// while (!clientRequest.isFulfilled)
-					// sleep(1);
-
+				//clientRequest.fillRequestData("");
+				
 				std::cerr << "\nclientfd: " << clientfd << std::endl;
 				std::cerr << std::endl;
 				if (clientRequest.isFulfilled)
@@ -442,7 +400,8 @@ void Configuration::start()
 					std::string responseFile = currServer->getResponseFilePath(&clientRequest);
 					std::cout << "reposefile GET: " << responseFile << std::endl;
 					HTTPResponse response(clientfd, clientRequest, responseFile);
-					delete currServer;
+					//if (responseFile != "./favicon.ico")
+					//delete currServer;
 					//std::cout << "RESPONSE DATA: " << response.response << std::endl;
 					send(clientfd ,response.response.c_str(), response.response.size(),0);
 				}
@@ -465,35 +424,7 @@ void Configuration::start()
 					//--i;
 				}
 				continue;
-
-		// 		std::istringstream bufferString(buffer);
-		// 		// setEnv(bufferString);
-		// 		// printEnv();
-		// 		std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
-		// 		if (it->second.first == GET)
-		// 		{
-		// 			if (!sendHTTPResponse(it->second.second, clientfd))
-		// 			{
-		// 				close(clientfd);
-		// 				FD_CLR(clientfd, &master_set);
-		// 				clientSockets.erase(clientSockets.begin() + i);
-		// 				--i;
-		// 				continue;
-		// 			}
-		// 		}
-		// 		else if (it->second.first == POST)
-		// 		{
-		// 			if (!postResponse(it->second.second, clientfd))
-		// 			{
-		// 				close(clientfd);
-		// 				FD_CLR(clientfd, &master_set);
-		// 				clientSockets.erase(clientSockets.begin() + i);
-		// 				--i;
-		// 				continue;
-		// 			}
-		// 		}
 			}
 		}
-		// iteratorClean();
 	}
 }

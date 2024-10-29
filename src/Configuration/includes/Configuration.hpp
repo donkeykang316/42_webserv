@@ -33,6 +33,11 @@ public:
 	void parseConfig();
 	void printConfigurationData();
 	void start();
+
+	void handleNewConnections(fd_set& read_fds, std::vector<int>& clientSockets, std::map<int, HTTPRequest*>& httpRequests);
+	void handleClientCommunications(fd_set& read_fds, std::vector<int>& clientSockets, std::map<int, HTTPRequest*>& httpRequests);
+	bool processClientRequest(int clientfd, HTTPRequest* request);
+	void closeClientConnection(int clientfd, std::vector<int>& clientSockets, std::map<int, HTTPRequest*>& httpRequests, size_t index);
 };
 
 #endif

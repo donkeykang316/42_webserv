@@ -8,21 +8,23 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 	response.clear();
 	std::cout << "HTTPResponse::HTTPResponse" << std::endl;
 
-	if (filePath == "./favicon.ico")
+	/*if (filePath == "./favicon.ico")
 	{
-		response.append("HTTP/1.1 200 Not Found\r\n");
-		response.append("Content-Type: text/html\r\n");
-		response.append("Content-Length: 0\r\n");
-		response.append("\r\n");
+		request.location = NULL;
+		response_headers.append("Location: ");
+		response_headers.append(filePath);
+		response_headers.append("\r\n");
 		sendResponse();
 		return ;
-	}
+	}*/
 
-	if (_request.location->isCgi)
-	{
-		std::cout << "Problem is here" << std::endl;
-		runCGI(_request.location, &_request);
-		return ;
+	if (_request.get_method() == "POST") {
+		if (_request.location->isCgi)
+		{
+			std::cout << "Problem is here" << std::endl;
+			runCGI(_request.location, &_request);
+			return ;
+		}
 	}
 	// if ()
 	status_code = _request.get_status_code();

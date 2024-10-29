@@ -47,22 +47,22 @@ server {
     }
 
     # Execute CGI for .py files
-    location ~ \.py$ {
-        cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
-        cgi_index index.php;
-        include fastcgi_params;
-        cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        cgi_param PATH_INFO $fastcgi_script_name;
-    }
+    # location ~ \.py$ {
+    #     cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
+    #    cgi_index index.php;
+    #     include fastcgi_params;
+    #     cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    #     cgi_param PATH_INFO $fastcgi_script_name;
+    # }
 
     # Execute CGI for .sh files
-    location ~ \.sh$ {
-        cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
-        cgi_index index.php;
-        include fastcgi_params;
-        cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        cgi_param PATH_INFO $fastcgi_script_name;
-    }
+    # location ~ \.sh$ {
+    #     cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
+    #     cgi_index index.php;
+    #     include fastcgi_params;
+    #     cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    #     cgi_param PATH_INFO $fastcgi_script_name;
+    # }
 }
 
 server {

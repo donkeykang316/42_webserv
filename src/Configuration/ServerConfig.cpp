@@ -112,6 +112,18 @@ LocationConfig *ServerConfig::getRegexLocation(const std::string &path)
 	LocationConfig *currRegexLocation = NULL;
 	for (std::vector<LocationConfig>::iterator it = this->regexLocations.begin(); it != this->regexLocations.end(); ++it)
 	{
+		std::cerr << "errorblock---------------------------------------------------------------\n";
+		std::cerr << "cgi_pass: " << it->cgiPass << std::endl;
+		std::cerr << "cgiIndex: " << it->cgiIndex << std::endl;
+		std::cerr << "cgiInclude: " << it->cgiInclude << std::endl;
+		std::cerr << "getRegexValue: " << it->getRegexValue() << std::endl;
+		std::cerr << "uri: " << it->uri << std::endl;
+		std::cerr << "root: " << it->root << std::endl;
+		std::cerr << "index: " << it->index << std::endl;
+		std::cerr << "modifier: " << it->modifier << std::endl;
+		std::cerr << "errorend---------------------------------------------------------------\n\n";
+
+
 		std::string regexVal = it->getRegexValue();
 		if (path.find(regexVal) == std::string::npos)
 			continue;
