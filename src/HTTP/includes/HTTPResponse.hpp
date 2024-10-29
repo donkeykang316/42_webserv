@@ -21,7 +21,6 @@ class HTTPResponse
 private:
 	int clientFd;
 	// int fdForCGIIncome;
-	int tubes[2];
 	int cgiResponseFd;
 	enum status_code_value status_code;
 	HTTPRequest &_request;
@@ -30,10 +29,16 @@ private:
 	std::string content;
 	void	_set_content(std::string filePath);
 	void sendResponse();
+	// char *paramsCGIList[4];
+	// char ***envp;
+	int cgiResponseFds[2];
+	std::string scriptExec;
 public:
 	HTTPResponse(int clientFd, HTTPRequest &request, std::string filePath);
 	~HTTPResponse();
 	std::string response;
+	int tubes[2];
+	bool isFulfilled;
 	void	get();
 	std::string getDefaultErrorPageContent(enum status_code_value statusCode);
 	std::string getDirectoryListing(std::string filePath);

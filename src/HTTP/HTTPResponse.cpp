@@ -3,6 +3,7 @@
 HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath) : _request(request)
 {
 	clientFd = clFd;
+	isFulfilled = false;
 	cgiResponseFd = 0;
 	// fdForCGIIncome = dup(0);
 	response.clear();
@@ -71,7 +72,7 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 	response.append("\r\n");
 	response.append("\r\n");
 	response.append(content);
-
+	this->isFulfilled = true;
 	if (!request.get_method().compare("GET"))
 	{
 
@@ -199,14 +200,56 @@ void HTTPResponse::urlEncode(std::string &string)
 
 void HTTPResponse::setRequestData(const char *buff)
 {
-	// std::cout << "setRequestData" << std::endl;
 	if (_request.location && _request.location->isCgi)
 	{
 		std::string buffer = "";
 		buffer.append(buff);
-		write(tubes[1], buffer.c_str(), buffer.size() + 1);
-		if (buffer.size() <= 0)
+		std::cout << "<< SET REQUEST DATA " << _request.isFulfilled<<  std::endl;
+		std::cout << buff << std::endl;
+		std::cout << ">> SET REQUEST DATA " << std::endl;
+		// std::cout << "setRequestData" << std::endl;
+		if (buffer.size())
+			write(tubes[1], buffer.c_str(), buffer.size() - 1);
+		if (_request.isFulfilled)
 		{
+			pid_t cgi_pid;
+				char * paramsList[4];
+			paramsList[0] = (char *)"/bin/bash";
+			paramsList[1] = (char *)"-c";
+
+			paramsList[2] =(char *)scriptExec.c_str();
+			std::cout << "SCRIPT " << scriptExec << std::endl;
+			paramsList[3] = NULL;
+			char ***envp = NULL;
+			envp = new char **[1];
+			getEnvVariables(envp);
+			std::cout << "*envp[0] "<< (*envp)[0]<< std::endl;
+			if ((cgi_pid = fork())== 0) // child process
+			{
+				dup2(tubes[0], STDIN_FILENO);
+				close(tubes[0]);
+				close(tubes[1]);
+				close(cgiResponseFds[0]);
+				dup2(cgiResponseFds[1], STDOUT_FILENO);
+				close(cgiResponseFds[1]);
+				// dup2 (tubes[1], STDOUT_FILENO);
+				// close(tubes[1]);
+				// dup2(fdForCGIIncome, STDIN_FILENO);
+				// close(fdForCGIIncome);
+				// std::cout << "FD CLOSED ON CHILD " << "envp: " << (*envp)[0] << std::endl;
+				execve("/bin/bash", paramsList, *envp);
+			}
+			else
+			{
+				clearEnvVariables(envp);
+				delete [] envp;
+				// std::string buffer = request->getBuffer();
+				// write(tubes[1], buffer.c_str(), buffer.size() + 1);
+
+				close(tubes[0]);
+				close(tubes[1]);
+				close(cgiResponseFds[1]);
+			}
 			response.clear();
 			// read status from cgi
 			std::string s;
@@ -242,7 +285,6 @@ void HTTPResponse::setRequestData(const char *buff)
 		std::cout << response << std::endl;
 		std::cout << ">>>> /CGI RESPONSE: " << std::endl;
 
-        	close(tubes[1]);
 		}
 	}
 	else if (_request.isFulfilled)
@@ -326,84 +368,65 @@ void HTTPResponse::runCGI(LocationConfig *location, HTTPRequest *request)
 		return ;
 	}
 	// fd = open(//temporary file to record cgi result);
-	std::string script = request->dictionary.getSupportedCGIExecutor(supportedExt);
-	script.append(" ");
-	script.append(".");
-	script.append(filePath);
-	char * paramsList[4];
-	paramsList[0] = (char *)"/bin/bash";
-	paramsList[1] = (char *)"-c";
-	// paramsList[2] = (char *)"php-cgi";
-	// paramsList[3] = (char *)"-q";
-	// paramsList[4] = (char *)"/root/42_school/webserver/cgi-bin/index.php";
+	scriptExec = request->dictionary.getSupportedCGIExecutor(supportedExt);
+	scriptExec.append(" ");
+	scriptExec.append(".");
+	scriptExec.append(filePath);
+	// char * paramsCGIList[4];
+	// // paramsCGIList = malloc(4 *sizeof(char *));
+	// paramsCGIList[0] = (char *)"/bin/bash";
+	// paramsCGIList[1] = (char *)"-c";
+	// // paramsList[2] = (char *)"php-cgi";
+	// // paramsList[3] = (char *)"-q";
+	// // paramsList[4] = (char *)"/root/42_school/webserver/cgi-bin/index.php";
 
-	paramsList[2] =(char *)script.c_str();
-	std::cout << "SCRIPT " << script << std::endl;
-	// paramsList[2] =(char *)"ls";
-	paramsList[3] = NULL;
-	pid_t cgi_pid;
+	// paramsCGIList[2] =(char *)scriptExec.c_str();
+	// std::cout << "SCRIPT " << scriptExec << std::endl;
+	// // paramsList[2] =(char *)"ls";
+	// paramsCGIList[3] = NULL;
+	// paramsCGIList = paramsList;
+	// pid_t cgi_pid;
 	pipe(tubes);
-	int cgiResponseFds[2];
+	// int cgiResponseFds[2];
 	pipe(cgiResponseFds);
 	cgiResponseFd = cgiResponseFds[0];
 
-	std::cout << "RUNNING CGI " << script << std::endl;
-	char ***envp = NULL;
-	envp = new char **[1];
-	getEnvVariables(envp);
-	std::cout << "*envp[0] "<< (*envp)[0]<< std::endl;
-	if ((cgi_pid = fork())== 0) // child process
-	{
-		dup2(tubes[0], STDIN_FILENO);
-		close(tubes[0]);
-		close(tubes[1]);
-		close(cgiResponseFds[0]);
-		dup2(cgiResponseFds[1], STDOUT_FILENO);
-		close(cgiResponseFds[1]);
-		// dup2 (tubes[1], STDOUT_FILENO);
-		// close(tubes[1]);
-		// dup2(fdForCGIIncome, STDIN_FILENO);
-		// close(fdForCGIIncome);
-		// std::cout << "FD CLOSED ON CHILD " << "envp: " << (*envp)[0] << std::endl;
-		execve("/bin/bash", paramsList, *envp);
-	}
-	else
-	{
-		clearEnvVariables(envp);
-		delete [] envp;
-		std::string buffer = request->getBuffer();
-		// write(fdForCGIIncome, buffer.c_str(), buffer.size() + 1);
-		write(tubes[1], buffer.c_str(), buffer.size() + 1);
+	std::cout << "RUNNING CGI " << scriptExec << std::endl;
+	// envp = NULL;
+	// envp = new char **[1];
+	// getEnvVariables(envp);
+	// std::cout << "*envp[0] "<< (*envp)[0]<< std::endl;
+	// if ((cgi_pid = fork())== 0) // child process
+	// {
+	// 	dup2(tubes[0], STDIN_FILENO);
+	// 	close(tubes[0]);
+	// 	close(tubes[1]);
+	// 	close(cgiResponseFds[0]);
+	// 	dup2(cgiResponseFds[1], STDOUT_FILENO);
+	// 	close(cgiResponseFds[1]);
+	// 	// dup2 (tubes[1], STDOUT_FILENO);
+	// 	// close(tubes[1]);
+	// 	// dup2(fdForCGIIncome, STDIN_FILENO);
+	// 	// close(fdForCGIIncome);
+	// 	// std::cout << "FD CLOSED ON CHILD " << "envp: " << (*envp)[0] << std::endl;
+	// 	execve("/bin/bash", paramsCGIList, *envp);
+	// }
+	// else
+	// {
+	// 	clearEnvVariables(envp);
+	// 	delete [] envp;
+	// 	// std::string buffer = request->getBuffer();
+	// 	// write(tubes[1], buffer.c_str(), buffer.size() + 1);
 
-			close(tubes[0]);
-        	close(cgiResponseFds[1]);
-			// close(tubes[1]);
-		if (buffer.size() <= 0)
-		{
-			close(tubes[1]);
-
-
-        // finished with read-side
-        //close(cgiResponseFds[0]);
-		// std::cout << "<<<< CGI RESPONSE: " << std::endl;
-		// std::cout << s << std::endl;
-		// std::cout << ">>>> /CGI RESPONSE: " << std::endl;
-
-        	// close(fdForCGIIncome);
-			std::cout << "CGI WRITE STOPED" << std::endl;
-
-		}
-		// write(fdForCGIIncome, buffer.c_str(), buffer.size() + 1);
-		// dup2(tubes[1], 0);
-		// sleep(100);
-
-	}
+	// 	close(tubes[0]);
+	// 	close(cgiResponseFds[1]);
+	// }
 }
 
 void HTTPResponse::sendResponse()
 {
     // std::cout << "sendResponse " << response << "|sendResponse" << std::endl;
 	// send(clientFd , response.c_str(), response.size(),0);
-	_request.isFulfilled = true;
+	//_request.isFulfilled = true;
 	// close(clientFd);
 }

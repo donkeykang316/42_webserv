@@ -270,13 +270,14 @@ bool Configuration::setNonBlocking(int sockfd)
 
 void Configuration::start()
 {
-	int a = 3;
-	std::cout <<"Start " << a << std::endl;
 	// Set up the master file descriptor set
-	fd_set master_set;
-	fd_set read_fds;
+	fd_set			master_set, server_set;
+	fd_set			read_fds;
+	struct timeval	timeout;
+
 	FD_ZERO(&master_set);
 	FD_ZERO(&read_fds);
+	FD_ZERO(&server_set);
 	int fd_max = 0;
 
 	// Add listening sockets to the master set
@@ -287,22 +288,28 @@ void Configuration::start()
 		ServerSocket *socket = _listenSocketIt->second;
 		int serverSocketFd = socket->getFd();
 		FD_SET(serverSocketFd, &master_set);
+		FD_SET(serverSocketFd, &server_set);
 		if (serverSocketFd > fd_max)
 		{
 			fd_max = serverSocketFd;
 		}
 	}
 
+	// Initialize the timeval struct to 3 minutes.  If no
+   	// activity after 3 minutes this program will end.
+	timeout.tv_sec  = 3 * 60;
+	timeout.tv_usec = 0;
 	// Vector to keep track of client sockets
-	std::vector<int> clientSockets;
+	// std::vector<int> clientSockets;
 	std::map<int, HTTPRequest*> httpRequests;
-	clientSockets.clear();
+	// clientSockets.clear();
 	httpRequests.clear();
+
 	while (true)
 	{
-		read_fds = master_set;
-
-		int activity = select(fd_max + 1, &read_fds, NULL, NULL, NULL);
+		memcpy(&read_fds, &master_set, sizeof(master_set));
+		std::cout << "Waiting on select()..." <<std::endl;
+		int activity = select(fd_max + 1, &read_fds, NULL, NULL, &timeout);
 		if (activity < 0)
 		{
 			if (errno == EINTR)
@@ -310,163 +317,145 @@ void Configuration::start()
 			std::cerr << "select" << errno << std::endl;
 			break;
 		}
-
-		// Iterate through listening sockets to check for new connections
-		for (std::map<std::string, ServerSocket *>::iterator _listenSocketIt = _serverSockets.begin(); _listenSocketIt != _serverSockets.end(); ++_listenSocketIt)
+		// Check to see if the 3 minute time out expired.
+		if (activity == 0)
 		{
-			int _listenSocket = _listenSocketIt->second->getFd();
-			int sockfd = _listenSocket;
-			if (FD_ISSET(sockfd, &read_fds))
-			{
-				struct sockaddr_in client_addr;
-				socklen_t addrlen = sizeof(client_addr);
-				int newfd = accept(sockfd, (struct sockaddr *)&client_addr, &addrlen);
-				if (newfd < 0)
-				{
-					if (errno != EWOULDBLOCK && errno != EAGAIN)
-					{
-						std::cerr << "accept" << errno << std::endl;
-					}
-					continue;
-				}
-				if (!setNonBlocking(newfd))
-				{
-					std::cerr << "fcntl" << errno << std::endl;
-					close(newfd);
-					continue;
-				}
-
-				// Add the new socket to the master set and client list
-				FD_SET(newfd, &master_set);
-				if (newfd > fd_max)
-					fd_max = newfd;
-				clientSockets.push_back(newfd);
-				HTTPRequest *clientRequest = new HTTPRequest((this->dictionary));
-				httpRequests[newfd] = clientRequest;
-			}
+			std::cerr << "  select() timed out.  End program." << std::endl;
+			break;
 		}
 
-		// Iterate through client sockets to check for incoming data
-		for (size_t i = 0; i < clientSockets.size(); ++i)
+		int descReady = activity;
+		for (int i = 0; i <= fd_max  &&  descReady > 0; ++i)
 		{
-			int clientfd = clientSockets[i];
-			HTTPRequest clientRequest = *httpRequests[clientfd];
-			if (FD_ISSET(clientfd, &read_fds))
+			// std::map<std::string, ServerSocket *>::iterator _listenSocketIt = _serverSockets.begin();
+			// ServerSocket *currListenSocket = NULL;
+			// while (!currListenSocket && _listenSocketIt != _serverSockets.end())
+			// {
+			// 	if (i == _listenSocketIt->second->getFd())
+			// 		currListenSocket = _listenSocketIt->second;
+			// 	_listenSocketIt++;
+			// }
+			 if (FD_ISSET(i, &read_fds))
 			{
-				// Read client's request
-				char buffer[1024] = "";
-				ssize_t bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
-				if (bytesReceived == -1)
+				descReady -= 1;
+				if (FD_ISSET(i, &server_set))
 				{
-					std::cerr << "Failed to read request from client: " << strerror(errno) << "\n";
-					httpRequests.erase(clientfd);
-					close(clientfd);
-					FD_CLR(clientfd, &master_set);
-					// Remove from clientSockets
-					clientSockets.erase(clientSockets.begin() + i);
-					--i; // Adjust index after removal
-					continue;
-				}
-				while (bytesReceived > 0)
-				{
-					std::cout << "BUFFER: " << buffer << "|BUFFER eND" << std::endl;
-					clientRequest.fillRequestData(buffer);
-					if (clientRequest.response == NULL)
+					std::cout << "  Listening socket is readable\n" << std::endl;
+					while (true)
 					{
-						std::string hostAndPort = clientRequest.headers["Host"];
-						std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
-						std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
-						WebServer *currServer = _serverSockets[port]->getServer(port);
-						std::string responseFile = currServer->getResponseFilePath(&clientRequest);
-						HTTPResponse *response = new HTTPResponse(clientfd, clientRequest, responseFile);
-						clientRequest.response = response;
-
+						int newSd = accept(i, NULL, NULL);
+						if (newSd < 0)
+						{
+							if (errno != EWOULDBLOCK)
+							{
+								std::cerr << "  accept() failed" << std::endl;
+								// end_server = TRUE;
+							}
+							break;
+						}
+						std::cout <<"  New incoming connection - " << newSd << std::endl;
+						FD_SET(newSd, &master_set);
+						if (newSd > fd_max)
+							fd_max = newSd;
+						HTTPRequest *clientRequest = new HTTPRequest(newSd, (this->dictionary));
+						httpRequests[newSd] = clientRequest;
 					}
-					bytesReceived = recv(clientfd, buffer, sizeof(buffer) - 1, 0);
 				}
-				clientRequest.isFulfilled = true;
-				clientRequest.fillRequestData("");
-				// std::cout << "CLIENT RESPONSE " << clientRequest.response->response << "|" << std::endl;
-				// if (!clientRequest.location->isCgi)
-					send(clientfd , clientRequest.response->response.c_str(), clientRequest.response->response.size(),0);
-
-				// std::cout << "-----------NEW REQUEST----------" <<std::endl;
-				// std::cout << buffer << std::endl;
-				// std::cout << "-----------END OF REQUEST----------" <<std::endl;
-				// // Remove
-				// HTTPRequest *request = new HTTPRequest(buffer, dictionary);
-				// std::string hostAndPort = request->headers["Host"];
-				// // std::cout << " HOST " << hostAndPort << std::endl;
-				// std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
-				// std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
-				// // std::cout << " port " << port << " host " << host << std::endl;
-
-				// // Move to Obj
-
-				// WebServer *currServer = _serverSockets[port]->getServer(port);
-				// // std::cout << "SERVER " << currServer->getServerNameAliases().begin()._M_node << std::endl;
-				// // std::cout << " currServer " << *currServer->getServerNameAliases().begin() << std::endl;
-
-
-				// std::string responseFile = currServer->getResponseFilePath(request);
-
-
-				// std::cout << "********responseFile " << responseFile << std::endl;
-				// if (request->location->isCgi)
-				// {
-				// 	currServer->runCGI(request->location, request);
-				// }
-				// else
-				// {
-				// 	HTTPResponse response(*request, responseFile);
-				// 	delete request;
-				// 	std::cout << "RESPONSE DATA: " << response.response << std::endl;
-				// 	send(clientfd ,response.response.c_str(), response.response.size(),0);
-				// }
-
-				// Move to Obj
-				// while (!clientRequest.isFulfilled)
-					// sleep(1);
-				if (clientRequest.isFulfilled)
+				else
 				{
-					// sleep(5);
-					delete httpRequests[clientfd];
-					httpRequests.erase(clientfd);
-					close(clientfd);
-					FD_CLR(clientfd, &master_set);
-					clientSockets.erase(clientSockets.begin() + i);
-					--i;
-				}
-				continue;
+					std::cout << "  Descriptor " << i << " is readable" << std::endl;
+					//close_conn = FALSE;
+					char buffer[1024];
+					ssize_t rc = 0;
+					HTTPRequest *clientRequest = httpRequests[i];
+					while (true)
+					{
+						/**********************************************/
+						/* Receive data on this connection until the  */
+						/* recv fails with EWOULDBLOCK.  If any other */
+						/* failure occurs, we will close the          */
+						/* connection.                                */
+						/**********************************************/
+						memset(buffer, 0, 1024);
+						std::cout << "RECIVING....." << i << std::endl;
+						rc = recv(i, buffer, sizeof(buffer) - 1, 0);
+						
 
-		// 		std::istringstream bufferString(buffer);
-		// 		// setEnv(bufferString);
-		// 		// printEnv();
-		// 		std::map<std::string, envVars>::iterator it = _clientFeedback.find(METHOD);
-		// 		if (it->second.first == GET)
-		// 		{
-		// 			if (!sendHTTPResponse(it->second.second, clientfd))
-		// 			{
-		// 				close(clientfd);
-		// 				FD_CLR(clientfd, &master_set);
-		// 				clientSockets.erase(clientSockets.begin() + i);
-		// 				--i;
-		// 				continue;
-		// 			}
-		// 		}
-		// 		else if (it->second.first == POST)
-		// 		{
-		// 			if (!postResponse(it->second.second, clientfd))
-		// 			{
-		// 				close(clientfd);
-		// 				FD_CLR(clientfd, &master_set);
-		// 				clientSockets.erase(clientSockets.begin() + i);
-		// 				--i;
-		// 				continue;
-		// 			}
-		// 		}
+						if ( rc > 0 )
+							buffer[rc] = '\0';
+						std::cout << buffer << std::endl;
+						std::cout << ".....RECIVING....." << rc << std::endl;
+						if (rc < 0)
+						{
+							clientRequest->isFulfilled = true;
+							if (errno != EWOULDBLOCK)
+							{
+							perror("  recv() failed");
+							// close_conn = TRUE;
+							}
+							break;
+						}
+						if (rc == 0)
+						{
+							clientRequest->isFulfilled = true;
+							delete httpRequests[i];
+							clientRequest = NULL;
+							std::cout << "Cliend fd " << i << std::endl;
+							printf("  Connection closed\n");
+							close(i);
+							FD_CLR(i, &master_set);
+							if (i == fd_max)
+							{
+								while (FD_ISSET(fd_max, &master_set) == false)
+									fd_max -= 1;
+							}
+							//  close_conn = TRUE;
+							break;
+						}
+						// std::cout << "<<< REQUEST DATA" << std::endl;
+						// std::cout << buffer << std::endl;
+
+						// std::cout << ">>> REQUEST DATA" << std::endl;
+						clientRequest->fillRequestData(buffer);
+						if (clientRequest->response == NULL)
+						{
+							std::string hostAndPort = clientRequest->headers["Host"];
+							std::string port = hostAndPort.substr(hostAndPort.find_first_of(':') + 1);
+							std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
+							WebServer *currServer = _serverSockets[port]->getServer(port);
+							std::string responseFile = currServer->getResponseFilePath(clientRequest);
+							HTTPResponse *response = new HTTPResponse(i, *clientRequest, responseFile);
+							clientRequest->response = response;
+
+						}
+						if (clientRequest->isHeadersSet && clientRequest->getBuffer().size())
+								clientRequest->fillRequestData("");
+						if (clientRequest->bodyToRead)
+						{
+							if (rc > (ssize_t)clientRequest->bodyToRead)
+								clientRequest->bodyToRead = 0;
+							else
+								clientRequest->bodyToRead -= rc;
+						}
+						std::cout << " ~~~~~~~~~~BODY TO READ " << clientRequest->bodyToRead << std::endl;
+						if (clientRequest && clientRequest->response && clientRequest->response->isFulfilled)
+						{
+							std::cout << "SEND" << std::endl;
+							send(i , clientRequest->response->response.c_str(), clientRequest->response->response.size(),0);
+							delete httpRequests[i];
+							httpRequests[i] = new HTTPRequest(i, (this->dictionary));
+							clientRequest = httpRequests[i];
+						}
+					};
+				}
 			}
 		}
-		// iteratorClean();
+	}
+
+	// Clean up all of the sockets that are open
+	for (int i=0; i <= fd_max; ++i)
+	{
+		if (FD_ISSET(i, &master_set))
+			close(i);
 	}
 }

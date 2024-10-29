@@ -10,7 +10,7 @@ if (argc < 2)
 }
 
 Configuration config(argv[1]);
-config.printConfigurationData();
+// config.printConfigurationData();
 config.start();
 // std::string uri = "dgdg";
 // size_t pos = uri.find_first_not_of("abcdef");

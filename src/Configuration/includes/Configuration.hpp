@@ -6,6 +6,7 @@
 # include <vector>
 # include <stack>
 # include <algorithm>
+#include <sys/time.h>
 
 # include "../../HTTP/includes/HTTP.h"
 # include "Dictionary.hpp"

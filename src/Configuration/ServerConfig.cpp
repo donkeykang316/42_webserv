@@ -118,18 +118,18 @@ LocationConfig *ServerConfig::getRegexLocation(std::string path)
 		size_t pos = path.find_last_of(regexVal);
 		if (pos == std::string::npos)
 			continue;
-		std::cout << "1.________________regexVal is in uri " << regexVal << std::endl;
+		// std::cout << "1.________________regexVal is in uri " << regexVal << std::endl;
 		std::string uri = (it)->uri;
 		std::cout << "URI: " << uri  << " path: " << path <<  std::endl;
 
 		if (uri[0] == '^' && !pos)
 			continue;
-		std::cout << "2.________________regexVal match start " << regexVal << std::endl;
-		std::cout << "2.1.________________ " << pos << " " << pos + regexVal.size() << " " << path.size() << std::endl;
+		// std::cout << "2.________________regexVal match start " << regexVal << std::endl;
+		// std::cout << "2.1.________________ " << pos << " " << pos + regexVal.size() << " " << path.size() << std::endl;
 
 		if (uri[uri.size() - 1] == '$' && (pos + 1 != path.size()))
 			continue;
-		std::cout << "3.________________regexVal match end " << regexVal << std::endl;
+		// std::cout << "3.________________regexVal match end " << regexVal << std::endl;
 
 		std::cout << "________________regexVal " << regexVal << std::endl;
 		return (&(*it));

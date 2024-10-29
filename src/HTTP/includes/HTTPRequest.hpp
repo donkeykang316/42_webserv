@@ -12,24 +12,30 @@ class HTTPResponse;
 class HTTPRequest
 {
 private:
+    int clientFd;
     enum status_code_value status_code;
     std::string buff;
+    std::string body;
+    std::string boundary;
+    std::string lastBuff;
+    std::string bodyLimiter;
     std::string method;
     std::string path;
     std::map<std::string, std::string> queryParams;
     std::string protocol_v;
     std::string pathToFile;
     enum eRequestType _requestType;
-    bool isHeadersSet;
     void _fillQueryParams();
 public:
     bool isFulfilled;
+    bool isHeadersSet;
+    size_t bodyToRead;
     HTTPResponse *response;
     Dictionary &dictionary;
     LocationConfig *location;
     std::map<std::string, std::string> headers;
 
-    HTTPRequest(Dictionary &dict);
+    HTTPRequest(int clientFd, Dictionary &dict);
     HTTPRequest(char const * buffer, Dictionary &dict);
     HTTPRequest &operator=(HTTPRequest &rhs);
     ~HTTPRequest();

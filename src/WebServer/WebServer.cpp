@@ -153,7 +153,9 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 	request->location = serverConfig->getLocation(requestUri);
 	// check is it cgi
 	if (request->location->isCgi)
+	{
 		return (requestUri);
+	}
 
 	// redirection
 	filePath = getRedirectionPath(requestUri, request->location, request);

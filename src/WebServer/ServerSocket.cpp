@@ -41,6 +41,7 @@ int ServerSocket::createServerSocket(std::string portInfo)
     // memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;     // Allow IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
+    hints.ai_protocol = 0; // TCP protocol
     hints.ai_flags = AI_PASSIVE;     // For wildcard IP address
 
     const char *port = portInfo.c_str(); // No need for static_cast
@@ -62,7 +63,7 @@ int ServerSocket::createServerSocket(std::string portInfo)
             std::cerr << "socket creation failed: " << strerror(errno) << std::endl;
             continue; // Try the next address
         }
-
+        fcntl(sockfd, F_SETFL, O_NONBLOCK);
         // Set SO_REUSEADDR to allow reuse of local addresses
         int opt = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)

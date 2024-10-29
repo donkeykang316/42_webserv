@@ -26,6 +26,7 @@ void Dictionary::_setConfigDictionary()
 	for (int i = 0; i < 2; i++)
 		supportedCGIExtensions[cgiExtensions[i]] = cgiExtensions->substr(1);
 	supportedCGIExecutors["php"] = "php-cgi -q";
+	// supportedCGIExecutors["php"] = "php -q";
 	supportedCGIExecutors["py"] = "python3";
 	// cgiExtensions.
 	// for ()
