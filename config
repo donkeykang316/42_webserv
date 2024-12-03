@@ -20,6 +20,12 @@ server {
         allow_methods GET POST;  # Accepted HTTP methods
     }
 
+    location /google {
+        root /www;
+        return 301 https://www.google.com;
+        allow_methods GET
+    }
+
     location /subpage {
         root /subpage;
         index index.html;
@@ -37,13 +43,29 @@ server {
     }
 
     # Execute CGI for .php files
-    # //localhost:5000/cgi-bin/index.php/subpage
-    location ~ \.php$ {
+    location = /upload {
+        root /cgi-bin;
         cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
         cgi_index index.php;
         include fastcgi_params;
         cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         cgi_param PATH_INFO $fastcgi_script_name;
+    }
+    location ~ \.php$ {
+        root /cgi-bin;
+        cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
+        cgi_index index.php;
+        include fastcgi_params;
+        cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        cgi_param PATH_INFO $fastcgi_script_name;
+    }
+    location ~ \.py$ {
+        root /cgi-bin;
+        # root  /usr/lib;
+        # fastcgi_pass  unix:/var/run/fcgiwrap.socket;
+        cgi_index index.py;
+        include fastcgi_params;
+        cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
 }
 
@@ -116,9 +138,21 @@ server {
         allow_methods GET POST;  # Accepted HTTP methods
     }
 
+     location /google {
+        root /www;
+        return 301 https://www.google.com/;
+        allow_methods GET POST;  # Accepted HTTP methods
+    }
+
     location /subpage {
         root /server/page2;
         index index.html;
+        autoindex on;  # Turn on directory listing
+        allow_methods GET;
+    }
+    location /upload {
+        root /upload;
+        # index index.html;
         autoindex on;  # Turn on directory listing
         allow_methods GET;
     }

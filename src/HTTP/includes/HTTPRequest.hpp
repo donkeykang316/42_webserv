@@ -36,7 +36,6 @@ public:
     std::map<std::string, std::string> headers;
 
     HTTPRequest(int clientFd, Dictionary &dict);
-    HTTPRequest(char const * buffer, Dictionary &dict);
     HTTPRequest &operator=(HTTPRequest &rhs);
     ~HTTPRequest();
 
@@ -52,7 +51,7 @@ public:
     std::string getBuffer();
     void fillRequestHeaders(char const * buffer);
 
-    void fillRequestData(char const * buffer);
+    void fillRequestData(unsigned char const * buffer, ssize_t rc);
 };
 
 #endif

@@ -17,7 +17,6 @@ private:
 	void	resetToDefault();
 	std::set<std::string> listen;
 	std::set<std::string> serverNameAliases;
-	// std::map<std::string,std::string> supportedCgiExtentions;
 	std::vector<LocationConfig> regexLocations;
 
 public:

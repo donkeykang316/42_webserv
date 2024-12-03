@@ -3,20 +3,6 @@
 WebServer::WebServer(ServerConfig *serverConfigElem, Dictionary &dictionaryGlobal):dictionary(dictionaryGlobal)
 {
 	serverConfig = serverConfigElem;
-		// for (std::set<std::string>::iterator portIt = serverConfig.listen.begin(); portIt != serverConfig.listen.end(); portIt++)
-		// {
-		// 	struct addrinfo hints = addrinfo();
-		// 	hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
-		// 	hints.ai_socktype = SOCK_STREAM;
-		// 	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
-		// 	getaddrinfo(serverConfig.serverName.c_str(), (*portIt).c_str(), &(hints), &res);
-		// 	socket_fds[*portIt] = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-		// 	fds[0].fd = socket_fds[*portIt];
-		// 	fds[0].events = POLLIN;
-		// 	bind(socket_fds[*portIt], res->ai_addr, res->ai_addrlen);
-		// 	listen(socket_fds[*portIt], BACKLOG);
-		// 	launch();
-		// }
 }
 
 	WebServer& WebServer::operator=(const WebServer &rhs)
@@ -28,51 +14,7 @@ WebServer::WebServer(ServerConfig *serverConfigElem, Dictionary &dictionaryGloba
 
 WebServer::~WebServer()
 {
-	// delete serverConfig;
 }
-
-// void WebServer::launch()
-// {
-// 	// while (true)
-// 	// {
-// 	// 	std::cout << "---LAUNCH----" << std::endl;
-// 	// 	_accept();
-// 	// 	// _handle();
-// 	// 	// _respond();
-// 	// 	std::cout << "---LAUNCH STOPED----" << std::endl;
-
-// 	// }
-// }
-
-// void	WebServer::_accept()
-// {
-// 	// for(std::map<std::string, int>::iterator socketFd = socket_fds.begin(); socketFd != socket_fds.end(); socketFd++)
-// 	// {
-// 	// 	char buffer[30000];
-// 	// 	HTTPRequest *curr_request = NULL;
-// 	// 	newSocketFds[(*socketFd).first] = accept((*socketFd).second, (res->ai_addr), &(res->ai_addrlen));
-// 	// 	int newSocketFd = newSocketFds[(*socketFd).first];
-// 	// 	read(newSocketFd, buffer, 30000);
-// 	// 	curr_request = _handle(buffer);
-// 	// 	_respond(newSocketFd, curr_request);
-// 	// }
-// }
-
-// HTTPRequest	*WebServer::_handle( char * buffer)
-// {
-// 	std::cout << buffer << std::endl;
-// 	return (new HTTPRequest(buffer, dictionary));
-// }
-
-// void	WebServer::_respond(int newSocketFd, HTTPRequest *request)
-// {
-// 	std::string responseFile = getResponseFilePath(request, serverConfig);
-// 	HTTPResponse response(*request, responseFile);
-// 	delete request;
-// 	std::cout << "RESPONSE DATA: " << response.response << std::endl;
-// 	send(newSocketFd,response.response.c_str(), response.response.size(),0);
-// 	close(newSocketFd);
-// }
 
 std::string WebServer::getResponseErrorFilePath(LocationConfig *location, enum status_code_value statusCode)
 {
@@ -115,6 +57,7 @@ std::string WebServer::getRedirectionPath(std::string &requestUri, LocationConfi
 	std::string redirectionUri = "";
 
 	//get location redirection
+
 	if (location && !location->getRedirection().first.empty())
 	{
 		request->setRequestType(REDIRECT_REQUEST);
@@ -190,7 +133,6 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 			if (request->getRequestType() == GET_FILE)
 				request->setRequestType(GET_DIR_LIST);
 			DIR *dir;
-	// struct dirent *ent;
 			std::string relativePath = ".";
 			relativePath.append(filePath);
 			if ((dir = opendir(relativePath.c_str())) != NULL)

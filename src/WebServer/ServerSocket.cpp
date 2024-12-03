@@ -38,7 +38,6 @@ int ServerSocket::createServerSocket(std::string portInfo)
     struct addrinfo *rp = NULL;
 
     // Initialize hints before calling getaddrinfo
-    // memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;     // Allow IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
     hints.ai_protocol = 0; // TCP protocol

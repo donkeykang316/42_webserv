@@ -1,51 +1,93 @@
 <?php
-$config = parse_ini_file("config.ini");
-// print('PHP SCRIPT');
-
-// print($config['database']);
-// print('--------------------------------------PHP SCRIPT---------------------');
-
-// $f = fopen( 'php://stdin', 'r' );
-// while( $line = fgets( $f ) ) {
-//   echo $line;
-// }
-// print('+++++++++++++++++++PHP SCRIPT++++++++++++++++++++++++');
-
+$config = parse_ini_file(".user.ini");
 $uploaddir = $config['database'];
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET')
 {
-
-  if (file_exists($uploadfile))
+  if ($_GET && $_GET['filename'])
   {
+    $filename =  $uploaddir . $_GET['filename'];;
+    if (file_exists($filename) && is_file($filename))
+    {
+      $size = filesize($filename);
+      // if ($size > 4000)
+      // {
+      //   // header('Status: 200 OK');
 
-  }
-  else{
+      //   header('Status: 206 Partial Content');
+      //   // http_response_code(200);
 
+      //   require_once('./partial_content.php');
+      //   serveFilePartial($filename, $filename);
+      // }
+      //   // header('Status: 206 Partial content');
+      // else
+      header('Status: 200 OK');
+      $cont_disp = "attachment; filename=" . $_GET['filename'];
+      header("Content-Disposition: $cont_disp");
+      // $size = filesize($filename);
+      header("Content-length: $size");
+      readfile($filename);
+    }
+    else if (!is_file($filename))
+    {
+      header('Status: 404 Not Found');
+    }
+    exit();
   }
+
+  http_response_code(200);
+  header('Status: 200 OK');
+  include('./upload_listing/upload_listing.php');
+
+  exit();
+
 }
 if ($_SERVER['REQUEST_METHOD'] == 'DELETE')
 {
-
-  if (file_exists($uploadfile))
+  // printf("DELETE!!!");
+  // printf($_SERVER['QUERY_STRING']);
+  $filename = $uploaddir . $_GET['filename'];
+  if (file_exists($filename) && is_file($filename))
   {
-
+    unlink($filename);
+    header('Status: 200 OK');
+    header('Content-length: 0');
   }
-  else{
-
+  else
+  {
+    header('Status: 204 No Content');
   }
+
+  exit();
 }
 
+// function convertToBytes(string $from): ?int {
+//   $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+//   $number = substr($from, 0, -2);
+//   $suffix = strtoupper(substr($from,-2));
+
+//   //B or no suffix
+//   if(is_numeric(substr($suffix, 0, 1))) {
+//       return preg_replace('/[^\d]/', '', $from);
+//   }
+
+//   $exponent = array_flip($units)[$suffix] ?? null;
+//   if($exponent === null) {
+//       return null;
+//   }
+
+//   return $number * (1024 ** $exponent);
+// }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // echo "Received POST data:\n";
 
   $uploadfile = $uploaddir . basename($_FILES['filename']['name']);
 
    if (move_uploaded_file($_FILES['filename']['tmp_name'], $uploadfile)) {
     http_response_code(200);
     header($_SERVER['SERVER_PROTOCOL'] . '200 OK');
-    // header('Location: https://localhost:5000');
 
     ob_start();
     echo "<head>";
@@ -54,10 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "<div>";
     echo "File is valid, and was successfully uploaded.\n";
     echo "</div>";
-    // print('\0');
     ob_end_flush();
-
-  } else {
+    exit();
+  }
+  else {
     print_r($_FILES['filename']['error']);
     http_response_code(404);
     header($_SERVER["SERVER_PROTOCOL"] . "404 Not Found");
@@ -68,30 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     print('\0');
     ob_end_flush();
   }
-
-// echo 'Here is some more debugging info:';
-// print_r($_FILES);
-
-// print "</pre>";
-  print_r($_SERVER);
-  print_r($_GET);
-  print_r($_POST);
-  print_r($_FILES);
-  print_r($_FILES['filename']['error']);
-} else {
-  echo "No POST data received.";
 }
-// echo "this is the page content";
-// header('Content-Length: '.ob_get_length());
-// var_dump(http_response_code());
-// print($http_response_header);
 
-// print('/PHP SCRIPT');
-// fclose( $f );
-
-// print "one";
-// include 'b.php';
-// print "three";
-// header('Location: http://stackoverflow.com');
 exit();
 ?>

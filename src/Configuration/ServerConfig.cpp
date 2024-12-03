@@ -10,7 +10,7 @@ ServerConfig & ServerConfig::operator=(const ServerConfig &rhs)
 {
 	(void) rhs;
 	this->resetToDefault();
-	std::cout << "SERVERCONFIG OPERATOR =" << std::endl;
+	std::cout << "SERVER_CONFIG OPERATOR =" << std::endl;
 	return (*this);
 }
 
@@ -27,7 +27,6 @@ void ServerConfig::resetToDefault()
 	this->locations.clear();
 	this->errorPages.clear();
 	this->redirection = std::make_pair("","");
-	// this->supportedCgiExtentions.clear();
 	this->regexLocations.clear();
 }
 
@@ -44,11 +43,6 @@ void ServerConfig::setListen(std::vector<std::string> vector)
 
 void ServerConfig::setServerName(std::vector<std::string> vector)
 {
-	// if (!isValidOneValue(vector))
-	// {
-		// serverNameAliases.clear();
-		// return;
-	// }
 	if (vector.size() < 2)
 	{
 		std::cout << "Instruction \"" << vector[0] << "\" must have at least one value" << std::endl;
@@ -118,20 +112,15 @@ LocationConfig *ServerConfig::getRegexLocation(std::string path)
 		size_t pos = path.find_last_of(regexVal);
 		if (pos == std::string::npos)
 			continue;
-		// std::cout << "1.________________regexVal is in uri " << regexVal << std::endl;
 		std::string uri = (it)->uri;
 		std::cout << "URI: " << uri  << " path: " << path <<  std::endl;
 
 		if (uri[0] == '^' && !pos)
 			continue;
-		// std::cout << "2.________________regexVal match start " << regexVal << std::endl;
-		// std::cout << "2.1.________________ " << pos << " " << pos + regexVal.size() << " " << path.size() << std::endl;
 
 		if (uri[uri.size() - 1] == '$' && (pos + 1 != path.size()))
 			continue;
-		// std::cout << "3.________________regexVal match end " << regexVal << std::endl;
 
-		std::cout << "________________regexVal " << regexVal << std::endl;
 		return (&(*it));
 	}
 	return (currRegexLocation);
@@ -231,14 +220,5 @@ void ServerConfig::addLocation(LocationConfig location)
 		sameLocation = &location;
 	else
 		this->locations.push_back(location);
-	// if (!location.isCgi)
-	// 	return ;
-	// std::string cgiExtention = location.uri;
-	// cgiExtention.erase(0, cgiExtention.find_first_of('.'));
-	// cgiExtention.erase(cgiExtention.find_first_of('$'));
-	// supportedCgiExtentions[cgiExtention] = location.uri;
-	// add regex location
-	// if (!location.modifier.compare("~"))
-
 }
 

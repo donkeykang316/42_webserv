@@ -20,8 +20,6 @@
 class WebServer
 {
 private:
-	// struct addrinfo *res;
-
 	ServerConfig *serverConfig;
 	Dictionary &dictionary;
 
