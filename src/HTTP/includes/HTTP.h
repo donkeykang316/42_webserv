@@ -66,7 +66,6 @@ enum status_code_value
 	network_authentication_required = 511
 };
 
-// TODO: should this be inline?
 inline std::string getStatusCodeMsg(status_code_value c)
 {
 	switch (c)

@@ -1,0 +1,2 @@
+name=John&age=301111
+cat reqtest | REQUEST_METHOD=POST CONTENT_LENGTH=$(cat reqtest | wc -c) CONTENT_TYPE="multipart/form-data; boundary=----WebKitFormBoundary2ba7HOsfZcYNp6gL" SCRIPT_FILENAME=./cgi-bin/index.php REDIRECT_STATUS=CGI php-cgi -q ./cgi-bin/index.php

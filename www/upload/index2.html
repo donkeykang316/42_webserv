@@ -1,0 +1,24 @@
+<html>
+
+<div class="p-3">
+	<form enctype="multipart/form-data" action="/cgi-bin/index.php?document_root=cgi-bin&fastcgi_script_name=index.php" method="post">
+	  <div class="form-group">
+	  <label for="name_field">Name:</label>
+	  <input type="text" required id="name_field" name="name" placeholder="Your Name" class="form-control" />
+	</div>
+
+	<div class="form-group">
+	  <label for="email_field">Email:</label>
+	  <input type="email" required id="email_field" name="email" placeholder="test email" class="form-control" />
+	</div>
+
+	  <div>
+		<p>File: <input type ="file" name="filename" /></p>
+
+	  </div>
+	  <div>
+		<input type="submit" class="btn btn-primary px-4" name="submit"  value="Post"/>
+		</div>
+	</form>
+  </div>
+  </html>

@@ -1,0 +1,18 @@
+------WebKitFormBoundary2vkk1GGrhoP42l7b
+Content-Disposition: form-data; name="name"
+
+11
+------WebKitFormBoundary2vkk1GGrhoP42l7b
+Content-Disposition: form-data; name="email"
+
+m@m.ru
+------WebKitFormBoundary2vkk1GGrhoP42l7b
+Content-Disposition: form-data; name="filename"; filename="level1.json"
+Content-Type: application/json
+
+{"routes":{},"ifs":{"A1":{"ip":"104.95.23.13"},"B1":{},"C1":{},"D1":{"ip":"211.191.128.76"}}}
+------WebKitFormBoundary2vkk1GGrhoP42l7b
+Content-Disposition: form-data; name="submit"
+
+Post
+------WebKitFormBoundary2vkk1GGrhoP42l7b--
