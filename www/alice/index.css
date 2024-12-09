@@ -1,0 +1,104 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	display: grid;
+	justify-items: center;
+
+	--brown: rgb(90, 55, 8);
+	--bkg: rgb(255, 255, 232);
+
+	background-color: var(--bkg);
+	background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+}
+p {
+	line-height: 30px;
+	text-align: justify;
+	hyphens: auto;
+}
+.bkg {
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: 900px;
+	height: 100%;
+	object-fit: cover;
+	z-index: -1;
+	opacity: 0.5;
+	mix-blend-mode: exclusion;
+}
+.bkg img {
+	width: 100%;
+	height: auto;
+}
+
+.book-page {
+	width: 100%;
+	max-width: 800px;
+	padding: 1em;
+	font-size: 18px;
+	display: grid;
+	grid-template-columns: 30% 1fr 30%;
+	grid-auto-rows: min-content;
+	gap: 1.5em;
+	position: relative;
+	z-index: 1;
+}
+
+.book-page h1 {
+	font-size: 3rem;
+	margin: 1em 0 0.1em;
+	grid-column: 2/4;
+	justify-self: end;
+}
+
+.book-page p:nth-of-type(1)::first-letter {
+	font-size: 5rem;
+	float: left;
+}
+.book-page p:nth-of-type(1) {
+	grid-column: 1/4;
+	column-count: 2;
+	column-gap: 1.5em;
+	padding: 20px 10px;
+}
+
+.alice-regular {
+	font-family: "Alice", serif;
+	font-weight: 400;
+	font-style: normal;
+  }
+
+  .blob {
+	width: 80px;
+	height: 80px;
+	position: fixed;
+	bottom: 10%;
+	right: 10%;
+    border-radius: 50%;
+    margin: 10px;
+
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 1);
+    transform: scale(1);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}

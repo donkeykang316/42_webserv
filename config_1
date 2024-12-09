@@ -1,0 +1,49 @@
+
+# Server 0
+
+server {
+    listen  5000;
+    server_name localhost;
+
+    # Default Error Pages
+    # error_page 404 /error_pages 404.html;
+    error_page 500 502 503 504 /error_pages 50x.html;
+
+    # Limit client body size
+    client_max_body_size 100;
+
+    # Root location
+    location / {
+        root /www;
+        index index.html;
+        autoindex off;  # Turn off directory listing
+        allow_methods GET POST;  # Accepted HTTP methods
+    }
+
+    location /subpage {
+        root /subpage;
+        index index.html;
+        autoindex on;  # Turn on directory listing
+        allow_methods GET;
+        error_page 404 /error_pages 404.html;
+
+    }
+    location /subpage/sub {
+        root /subpage/sub2;
+        index index.html;
+        autoindex on;  # Turn on directory listing
+        allow_methods GET;
+        return 301 localhost::5000/subpage;
+    }
+
+    # Execute CGI for .php files
+    # //localhost:5000/cgi-bin/index.php/subpage
+    location ~ \.php$ {
+        cgi_pass unix:/run/php/php7.4-fpm.sock;  # Adjust PHP version as needed
+        cgi_index index.php;
+        include fastcgi_params;
+        cgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        cgi_param PATH_INFO $fastcgi_script_name;
+    }
+}
+

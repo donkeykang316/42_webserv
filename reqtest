@@ -1,0 +1,53 @@
+------WebKitFormBoundary2ba7HOsfZcYNp6gL
+Co
+POST /cgi-bin/index.php?document_root=cgi-bin&fastcgi_script_name=index.php HTTP/1.1
+Host: localhost:5000
+Connection: keep-alive
+Content-Length: 712
+Pragma: no-cache
+Cache-Control: no-cache
+sec-ch-ua: "Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Windows"
+Origin: http://localhost:5000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary2ba7HOsfZcYNp6gL
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: http://localhost:5000/upload/index2.html
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en-US,en;q=0.9,ru;q=0.8
+
+------WebKitFormBoundary2ba7HOsfZcYNp6gL
+Content-Disposition: form-data; name="name"
+
+sdf
+------WebKitFormBoundary2ba7HOsfZcYNp6gL
+Content-Disposition: form-data; name="email"
+
+D8d@dddd.ru
+------WebKitFormBoundary2ba7HOsfZcYNp6gL
+Content-Disposition: form-data; name="filename"; filename="level5.json"
+Content-Type: application/json
+
+{"routes":{"Ar1":{"route":"89.248.62.12","gate":"152.73.134.1"},"Br1":{"gate":"152.73.134.1"}},"ifs":{"A1":{"ip":"89.248.62.12","mask":"255.255.255.128"},"B1":{"ip":"152.73.134.253","mask":"255.255.192.0"},"R1":{},"R2":{}}}
+------WebKitFormBoundary2ba7HOsfZcYNp6gL
+Content-Disposition: form-data; name="submit"
+
+Post
+------WebKitFormBoundary2ba7HOsfZcYNp6gL--
+,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: http://localhost:5000/upload/index2.html
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en-US,en;q=0.9,ru;q=0.8
+
+------WebKitFormBoundary2ba7HOsfZcYNp6gL
+Co

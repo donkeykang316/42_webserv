@@ -1,0 +1,3 @@
+GET /upload?filename=what_is_that_file.txt HTTP/1.1
+Host: localhost:5000
+Connection: keep-alive
