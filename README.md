@@ -11,5 +11,5 @@
    , the curl command hangs (fixed)
  - disable /www loction from the config file cause segmentfault
  - disable allow method post does not work
- - multi server not working
+ - multi server not working (fixed)
  - multi service config with the same port shouldnt work but work in our case
