@@ -12,4 +12,3 @@
  - disable /www loction from the config file cause segmentfault
  - disable allow method post does not work (fixed)
  - multi server not working (fixed)
- - multi service config with the same port shouldnt work but work in our case
