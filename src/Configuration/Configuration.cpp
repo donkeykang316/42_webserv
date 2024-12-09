@@ -344,6 +344,12 @@ void Configuration::start()
 							}
 							break;
 						}
+						if (!setNonBlocking(newSd))
+						{
+							std::cerr << "fcntl" << errno << std::endl;
+							close(newSd);
+							continue;
+						}
 						std::cout <<"  New incoming connection - " << newSd << std::endl;
 						FD_SET(newSd, &master_set);
 						if (newSd > fd_max)
