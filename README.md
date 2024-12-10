@@ -12,3 +12,4 @@
  - disable /www loction from the config file cause segmentfault
  - disable allow method post does not work (fixed)
  - multi server not working (fixed)
+ - When uploading a file (the subject, webserv.pdf) the server hangs
