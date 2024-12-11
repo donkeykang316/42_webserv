@@ -346,10 +346,10 @@ void Configuration::start()
 						}
 						if (!setNonBlocking(newSd))
 						{
-							std::cerr << "fcntl" << errno << std::endl;
-							close(newSd);
-							continue;
-						}
+                    		std::cerr << "fcntl" << errno << std::endl;
+                    		close(newSd);
+                    		continue;
+                		}
 						std::cout <<"  New incoming connection - " << newSd << std::endl;
 						FD_SET(newSd, &master_set);
 						if (newSd > fd_max)
@@ -409,7 +409,7 @@ void Configuration::start()
 							std::string badRequest =  "HTTP/1.1 400 Bad Request\r\n\r\n";
 							send(i , badRequest.c_str(), badRequest.size(), 0);
 						}
-						else if (clientRequest->response == NULL)
+						else if (clientRequest->isHeadersSet && clientRequest->response == NULL)
 						{
 							std::cout << "RESPONSE CREATE " << clientRequest->headers["Host"] << std::endl;
 							std::string hostAndPort = clientRequest->headers["Host"];
@@ -417,6 +417,8 @@ void Configuration::start()
 							std::string host = hostAndPort.substr(0, hostAndPort.find_first_of(':'));
 							WebServer *currServer = _serverSockets[port]->getServer(port);
 							std::string responseFile = currServer->getResponseFilePath(clientRequest);
+							if (responseFile.size() == 0)
+								clientRequest->setStatusCode(not_found);
 							if (!clientRequest->get_status_code() && clientRequest->getRequestType() == POST_DATA && clientRequest->location->clientMaxBodySize >= 0)
 							{
 								std::map<std::string, std::string>::iterator it = clientRequest->headers.find("Content-Length");

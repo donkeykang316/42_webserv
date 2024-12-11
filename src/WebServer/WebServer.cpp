@@ -95,6 +95,8 @@ std::string WebServer::getResponseFilePath(HTTPRequest *request)
 		// get the location that matches uri of the request
 	request->location = serverConfig->getLocation(requestUri);
 	// check is it cgi
+	if (!request->location)
+		return ("");
 	if (request->location->isCgi)
 	{
 		return (requestUri);

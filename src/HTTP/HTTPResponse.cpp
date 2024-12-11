@@ -10,13 +10,13 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 
 	response.clear();
 		std::cout << "HTTPResponse::HTTPResponse" << std::endl;
-	if (_request.location->isCgi)
+	if (_request.location && _request.location->isCgi)
 	{
 		std::cout << "Problem is here" << std::endl;
 		runCGI(_request.location, &_request);
 		return ;
 	}
-	std::cout << GREEN << "content body max: " << request.location->clientMaxBodySize << RESET << std::endl;
+	// std::cout << GREEN << "content body max: " << request.location->clientMaxBodySize << RESET << std::endl;
 	// if ()
 	status_code = _request.get_status_code();
 	if (!status_code)
