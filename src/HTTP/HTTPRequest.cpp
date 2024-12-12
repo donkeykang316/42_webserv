@@ -198,7 +198,7 @@ std::map<std::string, std::string> HTTPRequest::getQueryParams()
 
 void HTTPRequest::fillRequestData(unsigned char const * _buffer, ssize_t rc)
 {
-    std::cout << BLUE <<"||"<< _buffer << "||" << RESET << std::endl;
+    //std::cout << BLUE <<"||"<< _buffer << "||" << RESET << std::endl;
     std::string buffer;
     buffer.append((char*)(_buffer), rc);
     switch (_requestType)
@@ -214,7 +214,7 @@ void HTTPRequest::fillRequestData(unsigned char const * _buffer, ssize_t rc)
         }
         if (buff.find("\r\n\r\n") == buff.npos)
             return ;
-        std::cout << YELLOW << "|" << buff << "|" << buff.find("\r\n\r\n") << RESET << std::endl;
+        // std::cout << YELLOW << "|" << buff << "|" << buff.find("\r\n\r\n") << RESET << std::endl;
 
         //  set method
         this->method.append(buff.substr(0, buff.find_first_of(' ')));
@@ -232,7 +232,9 @@ void HTTPRequest::fillRequestData(unsigned char const * _buffer, ssize_t rc)
             isFulfilled = true;
         }
         else if (!method.compare("POST"))
+        {
             _requestType = POST_DATA;
+        }
         else if (!method.compare("DELETE"))
         {
             _requestType = DELETE_DATA;

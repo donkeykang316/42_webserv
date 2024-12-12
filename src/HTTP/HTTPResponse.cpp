@@ -3,7 +3,7 @@
 HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath) : _request(request)
 {
 	clientFd = clFd;
-	if (request.getRequestType()== POST_DATA || request.getRequestType() == DELETE_DATA)
+	if (request.getRequestType() == POST_DATA || request.getRequestType() == DELETE_DATA)
 		isFulfilled = false;
 	else
 		isFulfilled = true;
@@ -16,7 +16,6 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 		runCGI(_request.location, &_request);
 		return ;
 	}
-	// std::cout << GREEN << "content body max: " << request.location->clientMaxBodySize << RESET << std::endl;
 	// if ()
 	status_code = _request.get_status_code();
 	if (!status_code)
@@ -66,29 +65,10 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 		content.append(getDirectoryListing(filePath, request.get_path()));
 	else
 		_set_content(filePath);
-	// if (status_code == ok && request.location->clientMaxBodySize >= 0 && request.location->clientMaxBodySize < (int) content.size())
-	// {
-	// 	status_code = request_entity_too_large;
-	// 	response.clear();
-	// 	response.append(_request.get_protocol_v());
-	// 	response.append(" ");
-	// 	std::ostringstream stat_code_str;
-	// 	stat_code_str << status_code;
-	// 	response.append(stat_code_str.str());
-	// 	response.append(" ");
-	// 	response.append(getStatusCodeMsg(status_code));
-	// 	response.append("\r\n");
-	// 	response.append("\r\n");
-	// 	std::cout << BLUE << "content body size: " << content.size() << RESET << std::endl;
-
-	// 	this->isFulfilled = true;
-	// 	return ;
-	// }
 	response.append(response_headers);
 	response.append("Content-Length: ");
 	std::ostringstream cont_l;
 	cont_l << content.size();
-	std::cout << GREEN << "content body size: " << content.size() << RESET << std::endl;
 	response.append(cont_l.str());
 	response.append("\r\n");
 	response.append("\r\n");
@@ -215,19 +195,23 @@ void HTTPResponse::urlEncode(std::string &string)
 
 void HTTPResponse::sendResponse()
 {
-	std::cout << MAGENTA << "SEND DATA " << RESET << std::endl;
+	std::cout << MAGENTA << "SEND DATA (sendResponse)" << RESET << std::endl;
 	eRequestType r_type = _request.getRequestType();
 
 	if (!_request.location || !(_request.location->isCgi))
 		return ;
 	if (r_type == POST_DATA && !_request.isFulfilled)
+	{
+		std::cout << RED << "REQUEST IS NOT FULFILLED" << RESET << std::endl;
 		return ;
+	}
 	std::cout << MAGENTA << "SEND DATA CGI " << _request.location->isCgi << RESET << std::endl;
 
 	std::string s;
 	char ch;
 	while (read(cgiResponseFds[0], &ch, 1) > 0)
 	{
+		std::cout << "char: "<< ch << std::endl;
 		s.push_back(ch);
 		if (ch == '\n')
 			break;
@@ -274,7 +258,7 @@ void HTTPResponse::setRequestData(const char *buff, ssize_t len)
 			close(tubes[1]);
 			close(tubes[0]);
 			std::cout << MAGENTA << "\n\n--1.4-- PARENT CLOSE PIPE tubes\n\n" << RESET << std::endl;
-
+        	sendResponse();
 		}
 	}
 }
