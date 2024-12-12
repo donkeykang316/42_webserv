@@ -380,7 +380,6 @@ void Configuration::start()
 							buffer[rc] = '\0';
 						if (rc < 0)
 						{
-							clientRequest->isFulfilled = true;
 							if (errno != EWOULDBLOCK)
 							{
 							perror("  recv() failed");
@@ -391,6 +390,7 @@ void Configuration::start()
 						if (rc == 0)
 						{
 							clientRequest->isFulfilled = true;
+
 							delete httpRequests[i];
 							clientRequest = NULL;
 							printf("  Connection closed\n");
@@ -419,17 +419,20 @@ void Configuration::start()
 							std::string responseFile = currServer->getResponseFilePath(clientRequest);
 							if (responseFile.size() == 0)
 								clientRequest->setStatusCode(not_found);
-							if (!clientRequest->get_status_code() && clientRequest->getRequestType() == POST_DATA && clientRequest->location->clientMaxBodySize >= 0)
+							if (!clientRequest->get_status_code() && clientRequest->getRequestType() == GET_FILE && clientRequest->location->clientMaxBodySize >= 0)
 							{
-								std::map<std::string, std::string>::iterator it = clientRequest->headers.find("Content-Length");
-								int cont_len = atoi(it->second.c_str());
+								struct stat stat_buf;
+    							int cont_len = stat(responseFile.c_str(), &stat_buf);
+								if (cont_len == 0)
+									cont_len = stat_buf.st_size;
+								else
+									cont_len = -1;
 								if (cont_len > clientRequest->location->clientMaxBodySize)
 								{
+									responseFile.clear();
 									clientRequest->setStatusCode(request_entity_too_large);
-									std::cout << "Content-Length: " << cont_len << std::endl;
 								}
 							}
-							//	clientRequest->setStatusCode(request_entity_too_large);
 							HTTPResponse *response = new HTTPResponse(i, *clientRequest, responseFile);
 							clientRequest->response = response;
 							if (clientRequest->isHeadersSet && clientRequest->getBuffer().size())
@@ -442,11 +445,10 @@ void Configuration::start()
 						if (clientRequest && clientRequest->response && clientRequest->response->isFulfilled)
 						{
 							std::cout << YELLOW << "SEND RESPOSE FULFILLED" << RESET << std::endl;
-
 							clientRequest->response->sendResponse();
-							std::cout << BOLDYELLOW << "SEND configuration" << RESET << std::endl;
 							send(i , clientRequest->response->response.c_str(), clientRequest->response->response.size(),0);
 							delete httpRequests[i];
+							std::cout << RED << "DELETED REQUEST after sending response" << RESET << std::endl;
 							httpRequests[i] = new HTTPRequest(i, (this->dictionary));
 							clientRequest = httpRequests[i];
 						}

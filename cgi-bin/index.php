@@ -10,23 +10,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET')
     $filename =  $uploaddir . $_GET['filename'];;
     if (file_exists($filename) && is_file($filename))
     {
-      $size = filesize($filename);
-      if ($size > 4000)
-      {
-        // header('Status: 200 OK');
+      // $size = filesize($filename);
+      // if ($size > 4000)
+      // {
+      //   // header('Status: 200 OK');
 
-        header('Status: 206 Partial Content');
-        // http_response_code(200);
+      //   header('Status: 206 Partial Content');
+      //   // http_response_code(200);
 
-        require_once('./partial_content.php');
-        serveFilePartial($filename, $filename);
-      }
-        // header('Status: 206 Partial content');
-      else
-        header('Status: 200 OK');
+      //   require_once('./partial_content.php');
+      //   serveFilePartial($filename, $filename);
+      // }
+      //   // header('Status: 206 Partial content');
+      // else
+      header('Status: 200 OK');
       $cont_disp = "attachment; filename=" . $_GET['filename'];
       header("Content-Disposition: $cont_disp");
-      // $size = filesize($filename);
+      $size = filesize($filename);
       header("Content-length: $size");
       readfile($filename);
     }

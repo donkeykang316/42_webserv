@@ -6,13 +6,14 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 	if (request.getRequestType() == POST_DATA || request.getRequestType() == DELETE_DATA)
 		isFulfilled = false;
 	else
+	{
 		isFulfilled = true;
 
+	}
 	response.clear();
 		std::cout << "HTTPResponse::HTTPResponse" << std::endl;
 	if (_request.location && _request.location->isCgi)
 	{
-		std::cout << "Problem is here" << std::endl;
 		runCGI(_request.location, &_request);
 		return ;
 	}
@@ -74,6 +75,7 @@ HTTPResponse::HTTPResponse(int clFd, HTTPRequest &request, std::string filePath)
 	response.append("\r\n");
 	response.append(content);
 	this->isFulfilled = true;
+
 }
 
 HTTPResponse::~HTTPResponse()
@@ -195,8 +197,9 @@ void HTTPResponse::urlEncode(std::string &string)
 
 void HTTPResponse::sendResponse()
 {
-	std::cout << MAGENTA << "SEND DATA (sendResponse)" << RESET << std::endl;
 	eRequestType r_type = _request.getRequestType();
+	std::cout << MAGENTA << "SEND DATA (sendResponse) " << r_type << " _request.isFulfilled "<< _request.isFulfilled << RESET << std::endl;
+
 
 	if (!_request.location || !(_request.location->isCgi))
 		return ;
@@ -211,7 +214,6 @@ void HTTPResponse::sendResponse()
 	char ch;
 	while (read(cgiResponseFds[0], &ch, 1) > 0)
 	{
-		std::cout << "char: "<< ch << std::endl;
 		s.push_back(ch);
 		if (ch == '\n')
 			break;
@@ -229,8 +231,6 @@ void HTTPResponse::sendResponse()
 	{
 			response.push_back(ch);
 	}
-	std::cout << "Rest response: " << response << std::endl;
-
 	isFulfilled = true;
 	close(cgiResponseFds[0]);
 	std::cout << MAGENTA << "\n\n--2.4-- PARENT CLOSE RESPONSE tubes (sendResponse)\n\n" << RESET << std::endl;
@@ -258,6 +258,8 @@ void HTTPResponse::setRequestData(const char *buff, ssize_t len)
 			close(tubes[1]);
 			close(tubes[0]);
 			std::cout << MAGENTA << "\n\n--1.4-- PARENT CLOSE PIPE tubes\n\n" << RESET << std::endl;
+			std::cout << GREEN <<"*** called sendResponse from RESPONSE setrequestData" << RESET << std::endl;
+
         	sendResponse();
 		}
 	}
@@ -393,6 +395,7 @@ void HTTPResponse::runCGI(LocationConfig *location, HTTPRequest *request)
 		delete [] envp;
 		close(cgiResponseFds[1]);
 		std::cout << "---tubes[1](parent) is " << tubes[1] << std::endl;
+
 		sendResponse();
 	}
 }
